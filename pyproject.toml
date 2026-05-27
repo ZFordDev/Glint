@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glasshud"
+version = "0.1.0"
+description = "A Modern Painter‑Rendered Desktop System Monitor"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Zachary", email = "example@example.com" }
+]
+
+dependencies = [
+    "psutil",
+    "PyQt6",
+    "wmi",
+    "pywin32",
+    "requests"
+]
+
+# Optional but recommended
+license = { text = "MIT" }
+keywords = ["system-monitor", "hud", "qt", "desktop", "windows"]
+
+# This tells Python where your package lives
+packages = ["glasshud"]
+
+[project.scripts]
+glasshud = "glasshud.__main__:main"
+glasshud-updater = "glasshub-updater.updater-main:main"
+
+[tool.setuptools]
+package-dir = { "" = "." }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["glasshud*", "glasshub-updater*"]
