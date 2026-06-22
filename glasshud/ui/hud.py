@@ -1,3 +1,9 @@
+"""
+hud.py
+------
+main UI for windows runtime.
+"""
+
 import sys
 
 from PyQt6.QtWidgets import (
