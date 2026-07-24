@@ -9,7 +9,7 @@ description = "A Modern Painter‑Rendered Desktop System Monitor"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
-    { name = "Zachary", email = "example@example.com" }
+    { name = "ZFordDev", email = "zforddev@gmail.com" }
 ]
 
 dependencies = [

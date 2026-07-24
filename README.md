@@ -1,124 +1,103 @@
-# **GlassHUD — A Modern Glass‑Rendered Desktop System Monitor for Windows**
+# Glint
 
-GlassHUD is a lightweight, always‑visible desktop system monitor for Windows.  
-It renders a translucent glass panel directly on the desktop using **QPainter**, delivering smooth, modern system stats without HTML widgets, web engines, or heavy UI frameworks.
+Glint is a lightweight, painter‑rendered system monitor designed for **my personal Windows PC**.  
+It sits on the desktop, stays out of the way, and gives a clean, at‑a‑glance view of system usage without relying on HTML, Electron, or heavy widget engines.
 
-GlassHUD is built with a **Linux‑style modular architecture**, a **dedicated updater micro‑application**, and a **clean packaging pipeline**, making it both lightweight and highly maintainable.
+If it works for you, great.  
+If it doesn’t, open an issue with your **system specs** and I’ll see if support can be added.
 
-The HUD is frameless, draggable, and designed to stay visually unobtrusive while remaining readable at a glance.
+Ubuntu support exists in theory (PyQt + psutil), but **Glint has not been tested on Ubuntu yet**.
 
 ---
 
-## **Current Capabilities**
+## **Features**
 
-### 🎨 Modern Glass UI  
-- Custom‑drawn frosted panel  
-- Gradient overlays and soft borders  
-- Highlight lines and subtle depth cues  
-- Smooth, pixel‑perfect bar graphs  
-- Fully painter‑rendered (no HTML, no layout jitter)
+### **Minimal Desktop UI**
+- Painter‑rendered interface (no web engine, no layout jitter)  
+- Frameless, draggable, unobtrusive  
+- Crisp usage bars and clean text  
 
-### 📊 Live System Stats  
+### **Live System Stats**
 - CPU usage  
 - RAM usage  
 - Disk usage (first two drives)  
-- Modular sensor backend for future expansion (temps, GPU, etc.)
+- Modular backend for future sensors (GPU, temps, etc.)
 
-### 🖥 Desktop Behavior  
-- Always‑on‑desktop (below windows, above wallpaper)  
-- Draggable with left‑click  
+### **Desktop Behavior**
+- Always‑on‑desktop layer (below windows, above wallpaper)  
 - Right‑click context menu  
-- Lightweight, low‑resource, no background services
+- Lightweight footprint  
 
-### 🧩 Modular Architecture  
-- `glasshud/` — main application package  
-- `core/` — system stats + sensor logic  
-- `ui/` — painter‑rendered HUD + menus  
-- `glasshub-updater/` — standalone updater micro‑app  
-- Clean separation of UI, logic, and update pipeline
+### **Architecture**
+- Modular Linux‑style layout  
+- Dedicated updater micro‑application (half working on might never make it) 
+- JSON configuration  
+- Clean packaging pipeline (PyInstaller + installer)
 
 ---
 
-## **Project Direction**
+## **Why Glint Exists**
 
-GlassHUD is transitioning from a simple HUD into a **fully structured desktop utility** with:
+Most Windows system monitors rely on HTML widgets, Electron shells, or heavy UI frameworks.  
+Glint takes a different approach:
 
-### 🔧 A dedicated updater subsystem  
-- Separate updater executable  
-- Version comparison via GitHub  
-- Safe file replacement  
-- Checksum validation  
-- Rollback protection  
-- Relaunch logic  
-- Update button in HUD context menu
+- **Zero web stack**  
+- **Fully painter‑rendered**  
+- **Fast, stable, pixel‑perfect**  
+- **Always visible without getting in the way**  
+- **Modular internal design**  
 
-### ⚙️ A settings subsystem  
-- Start‑on‑login toggle  
-- Saved window position  
-- Opacity control  
-- Refresh rate control  
-- Theme presets  
-- JSON‑based configuration
-
-### 📦 A full packaging pipeline  
-- PyInstaller build  
-- Inno Setup installer  
-- Version stamping  
-- Auto‑update integration  
-- Clean uninstall support
-
-This is no longer “just a HUD” — it’s becoming a **proper Windows desktop application** with a Linux‑inspired internal structure.
+It’s built to be simple, reliable, and personal.
 
 ---
 
 ## **Installation (Development Mode)**
 
 ### 1. Clone the repository
-```
-git clone https://github.com/<your-username>/GlassHUD.git
-cd GlassHUD
+```bash
+git clone https://github.com/ZFordDev/Glint.git
+cd Glint
 ```
 
 ### 2. Install dependencies
-```
+```bash
 pip install -r requirements.txt
+# working on the pyproject.toml
 ```
 
 Dependencies include:
-- `PyQt6` — GUI framework  
-- `psutil` — system stats  
-- `wmi` / `pywin32` — optional sensor support  
-- `requests` — updater networking  
+- PyQt6  
+- psutil  
+- wmi / pywin32 (optional Windows sensors)  
+- requests (updater)
 
 ---
 
 ## **Usage**
 
-Run the HUD:
+Run Glint:
 
-```
+```bash
 python main.py
 ```
 
-The widget will appear on your desktop.
-
-### Controls
+### **Controls**
 - **Left‑click + drag** — move the HUD  
-- **Right‑click** — context menu (Exit, Update, future settings)
+- **Right‑click** — context menu (Exit, Update, Settings)
 
 ---
 
 ## **Project Structure**
 
 ```
-sys_stat/
+glint/
 ├── main.py
 ├── pyproject.toml
 ├── requirements.txt
-├── glasshub-updater/
+├── updater/
 │   ├── updater-main.py
 │   └── updater.py
-└── glasshud/
+└── glint/
     ├── __init__.py
     ├── core/
     │   ├── sensors.py
@@ -130,51 +109,17 @@ sys_stat/
 
 ---
 
-## **How It Works**
-
-### QPainter‑Driven Rendering  
-GlassHUD uses QPainter to draw:
-
-- Rounded glass background  
-- Gradient overlays  
-- Highlight lines  
-- Smooth usage bars  
-- Segoe UI text  
-
-This approach provides:
-
-- Zero layout jitter  
-- Pixel‑perfect alignment  
-- Faster rendering  
-- A native Windows aesthetic  
-- Full control over visuals
-
-### Stats Pipeline  
-- `stats.py` collects CPU, RAM, and disk usage  
-- `hud.py` renders them using painter primitives  
-- Update loop runs every 1 second  
-
-### Updater Pipeline  
-- Separate updater executable  
-- GitHub release scanning  
-- Version comparison  
-- Safe file replacement  
-- Checksum validation  
-- Relaunch logic  
-
----
-
 ## **Roadmap**
 
-### Near‑term
-- GPU usage (Iris Xe compatible)  
-- CPU/GPU temperature support via LibreHardwareMonitor  
-- Acrylic blur (real Windows frosted glass)  
+### **Near‑Term**
+- GPU usage  
+- CPU/GPU temperatures (LibreHardwareMonitor)  
+- Acrylic blur  
 - Settings panel (opacity, refresh rate, auto‑start)  
 - System tray icon  
 - Compact mode  
 
-### Mid‑term
+### **Mid‑Term**
 - Plugin system  
 - Theme packs  
 - Multi‑monitor support  
@@ -182,16 +127,24 @@ This approach provides:
 
 ---
 
-## **Requirements**
+## **Compatibility**
 
-- Windows 10 or later  
+- **Windows 10+** — fully supported  
+- **Ubuntu / Linux** — *not tested yet*  
 - Python 3.10+  
-- psutil  
-- PyQt6  
+
+If Glint doesn’t run on your system, open an issue with:
+- CPU model  
+- GPU model  
+- OS version  
+- Python version  
+
+I’ll check if support can be added.
 
 ---
 
 ## **License**
 
-MIT License (or your preferred license)
+MIT License
 
+---

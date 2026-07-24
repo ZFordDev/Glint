@@ -27,8 +27,8 @@ from PyQt6.QtCore import (
     QRectF,
 )
 
-from glasshud.core.stats import get_basic_stats
-from glasshud.core.sensors import get_all_sensors
+from src.core.stats import get_basic_stats
+from src.core.sensors import get_all_sensors
 
 
 # ---------------------------------------------------------

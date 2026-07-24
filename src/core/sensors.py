@@ -1,7 +1,7 @@
 import psutil
 import wmi
 
-# Optional: OpenHardwareMonitor support
+# OpenHardwareMonitor support
 try:
     import clr  # pythonnet
     clr.AddReference("OpenHardwareMonitorLib")
