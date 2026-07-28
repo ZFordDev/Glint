@@ -50,7 +50,7 @@ class GlassHUD(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         # Compact modern sizing
-        self.resize(260, 180)
+        self.resize(260, 260)
 
         # -------------------------------------------------
         # STATE
@@ -59,6 +59,8 @@ class GlassHUD(QWidget):
 
         self.cpu = 0
         self.ram = 0
+        self.cputemp = 0
+        self.gputemp = 0
         self.disks = {}
 
         # -------------------------------------------------
@@ -80,11 +82,14 @@ class GlassHUD(QWidget):
     # UPDATE STATS
     # ---------------------------------------------------------
     def update_stats(self):
-        basic = get_basic_stats()
+        # Fetch comprehensive system stats including sensors
+        full_stats = get_all_sensors()
 
-        self.cpu = basic["cpu"]
-        self.ram = basic["ram"]
-        self.disks = basic["disks"]
+        self.cpu = full_stats["cpu"]
+        self.ram = full_stats["ram"]
+        self.disks = full_stats["disks"]
+        self.cputemp = full_stats["temps"]["cpu"]  # Add CPU temp to local variable
+        self.gputemp = full_stats["temps"]["gpu"]  # Add GPU temp to local variable ( might not work)
 
         self.update()
 
