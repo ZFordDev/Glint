@@ -1,4 +1,0 @@
-psutil
-PyQt6
-wmi
-pywin32

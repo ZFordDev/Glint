@@ -1,14 +1,6 @@
-from PyQt6.QtWidgets import QApplication
-from src.ui.hud import GlassHUD
-from src.ui.tray import TrayManager
-import sys
+"""Development launcher; installed users can run ``glint``."""
 
-app = QApplication(sys.argv)
-app.setQuitOnLastWindowClosed(False)
+from src.app import main
 
-hud = GlassHUD()
-hud.show()
-
-tray = TrayManager(app, hud)
-
-sys.exit(app.exec())
+if __name__ == "__main__":
+    raise SystemExit(main())

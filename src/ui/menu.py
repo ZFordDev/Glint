@@ -1,8 +1,6 @@
-from PyQt6.QtWidgets import QApplication
-from src.ui.hud import GlassHUD
-import sys
+"""Compatibility launcher for older development workflows."""
 
-app = QApplication(sys.argv)
-hud = GlassHUD()
-hud.show()
-sys.exit(app.exec())
+from src.app import main
+
+if __name__ == "__main__":
+    raise SystemExit(main())
