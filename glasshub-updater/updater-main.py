@@ -1,9 +1,14 @@
-"""
-updater-main.py
----------------
+"""Legacy updater placeholder.
 
-the main entry point for the updater
-
+The unreleased updater was removed from packaging for 1.0 because installing
+updates is now delegated to each platform's package manager.
 """
 
-from project import repo
+
+def main() -> int:
+    print("Update Glint through the package source used to install it.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

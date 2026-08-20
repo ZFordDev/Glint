@@ -1,0 +1,20 @@
+{
+  "default": {
+    "font": "Sans Serif",
+    "radius": 18,
+    "colors": {
+      "background": "#B4121212", "overlay_top": "#28FFFFFF", "overlay_bottom": "#0CFFFFFF",
+      "border": "#2DFFFFFF", "text": "#F0F0F0", "track": "#14FFFFFF",
+      "good": "#50DC78", "warning": "#FFC850", "critical": "#FF6464"
+    }
+  },
+  "midnight": {
+    "font": "Sans Serif",
+    "radius": 14,
+    "colors": {
+      "background": "#E010172A", "overlay_top": "#2438BDF8", "overlay_bottom": "#081E3A5F",
+      "border": "#4056C7FF", "text": "#E2E8F0", "track": "#24334155",
+      "good": "#22D3EE", "warning": "#FBBF24", "critical": "#FB7185"
+    }
+  }
+}

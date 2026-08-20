@@ -1,6 +1,5 @@
-"""
-lin_hud.py
-----------
+"""Compatibility import; the main HUD is now cross-platform."""
 
-Linux runtime UI
-"""
+from src.ui.hud import GlassHUD
+
+__all__ = ["GlassHUD"]

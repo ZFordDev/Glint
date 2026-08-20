@@ -1,321 +1,117 @@
-"""
-hud.py
-------
-main UI for windows runtime.
-"""
+"""Cross-platform, painter-rendered Glint HUD shell."""
 
-import sys
+from __future__ import annotations
 
-from PyQt6.QtWidgets import (
-    QApplication,
-    QWidget,
-    QMenu,
-)
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QLinearGradient, QPainter, QPen
+from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
-from PyQt6.QtGui import (
-    QPainter,
-    QColor,
-    QAction,
-    QFont,
-    QLinearGradient,
-    QPen,
-)
-
-from PyQt6.QtCore import (
-    Qt,
-    QTimer,
-    QRectF,
-)
-
-from src.core.stats import get_basic_stats
-from src.core.sensors import get_all_sensors
+from src.core.sensors import SensorReader
+from src.core.settings_storage import load_settings, save_settings
+from src.core.theme import color, load_theme
+from src.ui.layout import create_widgets, load_layout, save_layout
 
 
-# ---------------------------------------------------------
-# GLASS HUD
-# ---------------------------------------------------------
 class GlassHUD(QWidget):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-
-        # -------------------------------------------------
-        # WINDOW CONFIG
-        # -------------------------------------------------
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint
-            | Qt.WindowType.Tool
-            | Qt.WindowType.WindowStaysOnBottomHint
-        )
-
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-        # Compact modern sizing
-        self.resize(260, 260)
-
-        # -------------------------------------------------
-        # STATE
-        # -------------------------------------------------
+        self.settings = load_settings()
+        self.theme = load_theme(self.settings["theme"])
+        self.layout_data = load_layout(self.settings["layout"])
+        self.widgets = create_widgets(self.layout_data)
+        self.sensor_reader = SensorReader()
         self.drag_pos = None
-
-        self.cpu = 0
-        self.ram = 0
-        self.cputemp = 0
-        self.gputemp = 0
-        self.disks = {}
-
-        # -------------------------------------------------
-        # FONT
-        # -------------------------------------------------
-        self.title_font = QFont("Segoe UI", 10)
-        self.value_font = QFont("Segoe UI", 9)
-
-        # -------------------------------------------------
-        # TIMER
-        # -------------------------------------------------
-        self.timer = QTimer()
+        self.settings_window = None
+        flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
+        bottom_hint = getattr(Qt.WindowType, "WindowStaysOnBottomHint", None)
+        if bottom_hint is not None:
+            flags |= bottom_hint
+        self.setWindowFlags(flags)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.resize(int(self.layout_data.get("width", 280)), int(self.layout_data.get("height", 290)))
+        self.setWindowOpacity(self.settings["opacity"])
+        for widget in self.widgets:
+            widget.set_theme(self.theme)
+        position = self.settings["window"]
+        if position["x"] is not None and position["y"] is not None:
+            self.move(position["x"], position["y"])
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_stats)
-        self.timer.start(1000)
-
+        self.timer.start(self.settings["refresh_interval_ms"])
         self.update_stats()
 
-    # ---------------------------------------------------------
-    # UPDATE STATS
-    # ---------------------------------------------------------
-    def update_stats(self):
-        # Fetch comprehensive system stats including sensors
-        full_stats = get_all_sensors()
-
-        self.cpu = full_stats["cpu"]
-        self.ram = full_stats["ram"]
-        self.disks = full_stats["disks"]
-        self.cputemp = full_stats["temps"]["cpu"]  # Add CPU temp to local variable
-        self.gputemp = full_stats["temps"]["gpu"]  # Add GPU temp to local variable ( might not work)
-
+    def update_stats(self) -> None:
+        data = self.sensor_reader.get_all()
+        for widget in self.widgets:
+            widget.update(data)
         self.update()
 
-    # ---------------------------------------------------------
-    # BAR COLOR
-    # ---------------------------------------------------------
-    def get_bar_color(self, percent):
-        if percent < 50:
-            return QColor(80, 220, 120)
-        elif percent < 80:
-            return QColor(255, 200, 80)
-        else:
-            return QColor(255, 100, 100)
+    def apply_settings(self, settings: dict) -> None:
+        self.settings = save_settings(settings)
+        self.theme = load_theme(self.settings["theme"])
+        self.setWindowOpacity(self.settings["opacity"])
+        self.timer.setInterval(self.settings["refresh_interval_ms"])
+        for widget in self.widgets:
+            widget.set_theme(self.theme)
+        self.update()
 
-    # ---------------------------------------------------------
-    # DRAW BAR
-    # ---------------------------------------------------------
-    def draw_bar(self, painter, x, y, width, percent):
-        height = 10
+    def open_settings(self) -> None:
+        from src.ui.settings import SettingsWindow
 
-        # Background track
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(255, 255, 255, 20))
+        if self.settings_window is None:
+            # Retain it in Python without assigning a native parent. Parented
+            # widgets are presented as tool panels on several desktops.
+            self.settings_window = SettingsWindow(self.settings)
+            self.settings_window.settings_changed.connect(self.apply_settings)
+        self.settings_window.show()
+        self.settings_window.raise_()
+        self.settings_window.activateWindow()
 
-        painter.drawRoundedRect(
-            QRectF(x, y, width, height),
-            5,
-            5
-        )
-
-        # Filled amount
-        fill_width = max(8, int(width * (percent / 100)))
-
-        gradient = QLinearGradient(x, y, x + fill_width, y)
-
-        color = self.get_bar_color(percent)
-
-        gradient.setColorAt(0, color.lighter(120))
-        gradient.setColorAt(1, color)
-
-        painter.setBrush(gradient)
-
-        painter.drawRoundedRect(
-            QRectF(x, y, fill_width, height),
-            5,
-            5
-        )
-
-    # ---------------------------------------------------------
-    # DRAW STAT BLOCK
-    # ---------------------------------------------------------
-    def draw_stat(
-        self,
-        painter,
-        label,
-        percent,
-        x,
-        y
-    ):
-        # Text
-        painter.setPen(QColor(240, 240, 240))
-
-        painter.setFont(self.title_font)
-
-        painter.drawText(
-            x,
-            y,
-            f"{label}  {percent}%"
-        )
-
-        # Bar
-        self.draw_bar(
-            painter,
-            x,
-            y + 10,
-            180,
-            percent
-        )
-
-    # ---------------------------------------------------------
-    # PAINT EVENT
-    # ---------------------------------------------------------
-    def paintEvent(self, event):
+    def paintEvent(self, event) -> None:
         painter = QPainter(self)
-
-        painter.setRenderHint(
-            QPainter.RenderHint.Antialiasing
-        )
-
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         rect = self.rect().adjusted(1, 1, -1, -1)
-
-        # -------------------------------------------------
-        # GLASS BACKGROUND
-        # -------------------------------------------------
-        glass = QLinearGradient(0, 0, 0, self.height())
-
-        glass.setColorAt(
-            0,
-            QColor(255, 255, 255, 40)
-        )
-
-        glass.setColorAt(
-            1,
-            QColor(255, 255, 255, 12)
-        )
-
-        # Base dark tint
-        painter.setBrush(QColor(18, 18, 18, 150))
+        radius = int(self.theme.get("radius", 18))
         painter.setPen(Qt.PenStyle.NoPen)
-
-        painter.drawRoundedRect(rect, 18, 18)
-
-        # Glass overlay
-        painter.setBrush(glass)
-
-        painter.drawRoundedRect(rect, 18, 18)
-
-        # -------------------------------------------------
-        # BORDER
-        # -------------------------------------------------
-        pen = QPen(QColor(255, 255, 255, 45))
-        pen.setWidth(1)
-
-        painter.setPen(pen)
+        painter.setBrush(color(self.theme, "background", "#B4121212"))
+        painter.drawRoundedRect(rect, radius, radius)
+        overlay = QLinearGradient(0, 0, 0, self.height())
+        overlay.setColorAt(0, color(self.theme, "overlay_top", "#28FFFFFF"))
+        overlay.setColorAt(1, color(self.theme, "overlay_bottom", "#0CFFFFFF"))
+        painter.setBrush(overlay)
+        painter.drawRoundedRect(rect, radius, radius)
+        painter.setPen(QPen(color(self.theme, "border", "#2DFFFFFF"), 1))
         painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRoundedRect(rect, radius, radius)
+        for widget in self.widgets:
+            widget.draw(painter)
 
-        painter.drawRoundedRect(rect, 18, 18)
-
-        # -------------------------------------------------
-        # INNER HIGHLIGHT
-        # -------------------------------------------------
-        painter.setPen(QPen(QColor(255, 255, 255, 18)))
-
-        painter.drawLine(
-            20,
-            14,
-            self.width() - 20,
-            14
-        )
-
-        # -------------------------------------------------
-        # CONTENT
-        # -------------------------------------------------
-        start_x = 22
-        start_y = 38
-        spacing = 38
-
-        self.draw_stat(
-            painter,
-            "CPU",
-            self.cpu,
-            start_x,
-            start_y
-        )
-
-        self.draw_stat(
-            painter,
-            "RAM",
-            self.ram,
-            start_x,
-            start_y + spacing
-        )
-
-        # Draw first 2 disks only
-        disk_y = start_y + spacing * 2
-
-        for i, (disk, usage) in enumerate(
-            list(self.disks.items())[:2]
-        ):
-            self.draw_stat(
-                painter,
-                disk,
-                usage,
-                start_x,
-                disk_y + (i * spacing)
-            )
-
-    # ---------------------------------------------------------
-    # MOUSE EVENTS
-    # ---------------------------------------------------------
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.drag_pos = (
-                event.globalPosition().toPoint()
-                - self.frameGeometry().topLeft()
-            )
-
+            self.drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+            # Wayland rejects application-driven top-level positioning. Let
+            # the window manager perform the drag, retaining manual movement
+            # below as a fallback for backends that do not support this call.
+            handle = self.windowHandle()
+            if handle is not None and handle.startSystemMove():
+                self.drag_pos = None
+                event.accept()
         elif event.button() == Qt.MouseButton.RightButton:
-            self.open_context_menu(event)
+            menu = QMenu(self)
+            menu.addAction("Settings", self.open_settings)
+            menu.addSeparator()
+            menu.addAction("Exit", self._quit)
+            menu.exec(event.globalPosition().toPoint())
 
-    def mouseMoveEvent(self, event):
-        if (
-            self.drag_pos is not None
-            and event.buttons() & Qt.MouseButton.LeftButton
-        ):
-            self.move(
-                event.globalPosition().toPoint()
-                - self.drag_pos
-            )
+    def mouseMoveEvent(self, event) -> None:
+        if self.drag_pos is not None and event.buttons() & Qt.MouseButton.LeftButton:
+            self.move(event.globalPosition().toPoint() - self.drag_pos)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event) -> None:
         self.drag_pos = None
+        self.settings["window"] = {"x": self.x(), "y": self.y()}
+        save_settings(self.settings)
 
-    # ---------------------------------------------------------
-    # CONTEXT MENU
-    # ---------------------------------------------------------
-    def open_context_menu(self, event):
-        menu = QMenu(self)
-
-        quit_action = QAction("Exit", self)
-        quit_action.triggered.connect(self.close)
-
-        menu.addAction(quit_action)
-
-        menu.exec(
-            event.globalPosition().toPoint()
-        )
-
-
-# ---------------------------------------------------------
-# MAIN
-# ---------------------------------------------------------
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    hud = GlassHUD()
-    hud.show()
-
-    sys.exit(app.exec())
+    def _quit(self) -> None:
+        save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
+        QApplication.instance().quit()
