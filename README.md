@@ -88,4 +88,4 @@ Maintainers publish a release by updating `project.version` in `pyproject.toml`,
 3. creates SHA-256 checksums; and
 4. publishes the archives and generated notes to the tagged GitHub Release.
 
-The release workflow can also be started manually for an existing tag from the Actions page.
+The workflow can also be started manually in rehearsal mode, which validates and builds without publishing. Enabling its `publish` input requires an existing matching tag and creates the release after all builds succeed.
