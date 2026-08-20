@@ -66,6 +66,10 @@ def build(asset_name: str, archive: str) -> Path:
         application = ROOT / "dist" / "Glint.app"
         if not application.exists():
             raise SystemExit(f"PyInstaller did not create expected bundle: {application}")
+        # A windowed onedir macOS build emits both Glint/ and the complete
+        # Glint.app. The former is only an intermediate COLLECT output; reuse
+        # its name for the human-friendly release folder.
+        shutil.rmtree(bundle_root)
         bundle_root.mkdir()
         shutil.move(application, bundle_root / application.name)
     elif not bundle_root.exists():
