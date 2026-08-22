@@ -13,7 +13,9 @@ from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
 class TrayManager:
     def __init__(self, app, hud) -> None:
         self.app, self.hud = app, hud
-        icon = Path(__file__).parents[2] / "assets" / "icon.svg"
+        # Resolved inside the package so source checkouts, wheels, and frozen
+        # bundles all find it without install-specific path logic.
+        icon = Path(__file__).parents[1] / "assets" / "icon.svg"
         self.tray = QSystemTrayIcon(QIcon(str(icon)), app)
         menu = QMenu()
         menu.addAction("Show Glint", self.show_hud)

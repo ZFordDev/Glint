@@ -55,7 +55,7 @@ def build(asset_name: str, archive: str) -> Path:
         "--add-data",
         f"{ROOT / 'src' / 'themes.json'}:src",
         "--add-data",
-        f"{ROOT / 'assets'}:assets",
+        f"{ROOT / 'src' / 'assets'}:src/assets",
         str(ROOT / "main.py"),
     ]
     subprocess.run(command, cwd=ROOT, check=True)

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" width="112" alt="Glint icon">
+<img src="src/assets/icon.svg" width="112" alt="Glint icon">
 
 # Glint
 
