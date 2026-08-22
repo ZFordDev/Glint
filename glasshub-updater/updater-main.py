@@ -1,12 +1,13 @@
 """Legacy updater placeholder.
 
-The unreleased updater was removed from packaging for 1.0 because installing
-updates is now delegated to each platform's package manager.
+The unreleased updater was removed from packaging for 1.0 because Glint is
+distributed exclusively through GitHub Releases; users download new versions
+manually from https://github.com/ZFordDev/Glint/releases/latest.
 """
 
 
 def main() -> int:
-    print("Update Glint through the package source used to install it.")
+    print("Download new Glint versions manually from GitHub Releases.")
     return 0
 
 
