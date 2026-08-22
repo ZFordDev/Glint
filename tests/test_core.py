@@ -1,4 +1,5 @@
 import json
+import time
 from unittest.mock import Mock, patch
 
 from src.core.sensors import SensorReader
@@ -80,6 +81,86 @@ def test_sensor_schema_is_stable_without_optional_hardware():
     ):
         result = reader.get_all()
     assert set(result) == {"cpu", "ram", "disks", "temps", "gpu", "network"}
+
+
+class _FakeGpuConnection:
+    def __init__(self, engines):
+        self.engines = engines
+        self.queries = []
+
+    def query(self, wql):
+        self.queries.append(wql)
+        return self.engines
+
+
+class _FakeEngine:
+    Name = "pid_1_eng_0_engtype_3D"
+    UtilizationPercentage = 40
+
+
+def test_slow_windows_gpu_probe_backs_off(monkeypatch):
+    # Regression: probing the GPU counter set every tick pegged a CPU core on
+    # machines where the provider is slow; slow probes must now be throttled.
+    import src.core.sensors as sensors_module
+
+    reader = SensorReader()
+    connection = _FakeGpuConnection([_FakeEngine()])
+
+    class SlowConnection:
+        def query(self, wql):
+            time.sleep(0.25)  # above the 0.2 s backoff threshold
+            return connection.query(wql)
+
+    monkeypatch.setattr(sensors_module.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(SensorReader, "_cimv2", lambda self: SlowConnection())
+    first = reader._gpu()
+    second = reader._gpu()  # inside the backoff window -> served from cache
+    assert first == {"usage": 40.0, "temperature": None}
+    assert second == first
+    assert len(connection.queries) == 1
+
+
+def test_windows_gpu_query_filters_and_handles_empty_counters(monkeypatch):
+    import src.core.sensors as sensors_module
+
+    reader = SensorReader()
+    connection = _FakeGpuConnection([])
+    monkeypatch.setattr(sensors_module.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(SensorReader, "_cimv2", lambda self: connection)
+    assert reader._gpu() == {"usage": None, "temperature": None}
+    assert "engtype_3D" in connection.queries[0]  # filtering happens server-side
+
+
+def test_nvidia_smi_path_is_resolved_once(monkeypatch):
+    # Regression: the PATH was rescanned on every sample.
+    import src.core.sensors as sensors_module
+
+    calls = []
+    monkeypatch.setattr(sensors_module.shutil, "which", lambda name: calls.append(name) or "/usr/bin/nvidia-smi")
+    reader = SensorReader()
+    monkeypatch.setattr(sensors_module.platform, "system", lambda: "Linux")  # skip Windows fallback
+    reader._gpu()
+    reader._gpu()
+    assert len(calls) == 1
+
+
+def test_get_all_skips_heavy_probes_after_stop():
+    import threading
+
+    reader = SensorReader()
+    stop = threading.Event()
+    stop.set()
+    with (
+        patch.object(reader, "_gpu") as gpu_mock,
+        patch.object(reader, "_temperatures") as temps_mock,
+        patch.object(reader, "_disks") as disks_mock,
+    ):
+        result = reader.get_all(stop=stop)
+    gpu_mock.assert_not_called()
+    temps_mock.assert_not_called()
+    disks_mock.assert_not_called()
+    assert set(result) == {"cpu", "ram", "disks", "temps", "gpu", "network"}  # schema stays stable
+    assert result["gpu"] == {"usage": None, "temperature": None}
 
 
 def test_bundled_default_theme_loads():
