@@ -31,7 +31,7 @@ where = ["."]
 include = ["src*"]
 
 [tool.setuptools.package-data]
-src = ["themes.json"]
+src = ["themes.json", "assets/*.svg"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6", "tomli>=2; python_version < '3.11'"]

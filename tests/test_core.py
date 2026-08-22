@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock, patch
 
 from src.core.sensors import SensorReader
@@ -27,6 +28,36 @@ def test_layout_round_trip(tmp_path):
     loaded = load_layout(path=target)
     assert (loaded["width"], loaded["height"]) == (300, 400)
     assert [item["type"] for item in loaded["widgets"]] == [widget.widget_type for widget in widgets]
+
+
+def test_wrong_shape_layout_falls_back_to_defaults(tmp_path):
+    # Regression: a valid-JSON layout with a non-list "widgets" used to raise
+    # an uncaught TypeError instead of falling back.
+    target = tmp_path / "layout.json"
+    target.write_text('{"widgets": 3}', encoding="utf-8")
+    assert load_layout(path=target) == load_layout(path=tmp_path / "missing.json")
+
+
+def test_malformed_widget_entries_are_dropped(tmp_path):
+    # Regression: non-numeric geometry crashed QRectF during instantiation.
+    target = tmp_path / "layout.json"
+    target.write_text(
+        json.dumps(
+            {
+                "width": 280,
+                "height": 290,
+                "widgets": [
+                    {"type": "cpu", "x": "abc", "y": 30, "width": 236, "height": 38},
+                    {"type": "ram", "x": 22, "y": True, "width": 236, "height": 38},
+                    {"type": "disk", "x": 22, "y": 72, "width": 236, "height": 38, "disk": 7},
+                    {"type": "network", "x": 22, "y": 244, "width": 236, "height": 28},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    widgets = create_widgets(load_layout(path=target))
+    assert [widget.widget_type for widget in widgets] == ["network"]
 
 
 def test_network_throughput_is_delta_per_second():
