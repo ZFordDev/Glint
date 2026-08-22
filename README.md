@@ -100,7 +100,7 @@ Glint has no accounts, analytics, telemetry, advertising, or cloud service. Syst
 
 ## Project status
 
-Glint v1.0.0 is the first stable, cross-platform release. Distribution is intentionally minimal and GitHub-exclusive: there are no Microsoft Store, Mac App Store, Snap Store, or other store packages, and the legacy `glasshub-updater` prototype is not a supported update path.
+Glint v1.0.0 is the first stable, cross-platform release. Distribution is intentionally minimal and GitHub-exclusive: there are no Microsoft Store, Mac App Store, Snap Store, or other store packages, and there is no in-application updater; new versions are downloaded manually from GitHub Releases.
 
 Releases are built by GitHub Actions from matching `v*` tags. The workflow verifies formatting, lint, tests, and version consistency before creating native archives and SHA-256 checksums. Maintainer details are documented in [architecture and maintenance notes](https://docs.zford.dev/zforddev/glint/maintenance/).
 
