@@ -10,6 +10,8 @@ from typing import Any
 from src.core.settings_storage import config_dir
 from src.ui.widgets import WIDGET_TYPES, BaseWidget
 
+GEOMETRY_FIELDS = ("x", "y", "width", "height")
+
 DEFAULT_LAYOUT: dict[str, Any] = {
     "schema_version": 1,
     "width": 280,
@@ -30,17 +32,31 @@ def layout_path(name: str = "default") -> Path:
     return config_dir() / f"{safe_name}_layout.json"
 
 
+def _is_number(value: object) -> bool:
+    # bool is an int subclass but is never valid geometry.
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _valid_widget(definition: object) -> bool:
+    """Accept only widget entries whose geometry fields will not crash QRectF."""
+    if not isinstance(definition, dict) or definition.get("type") not in WIDGET_TYPES:
+        return False
+    for field in GEOMETRY_FIELDS:
+        if field in definition and not _is_number(definition[field]):
+            return False
+    disk = definition.get("disk")
+    return disk is None or isinstance(disk, str)
+
+
 def load_layout(name: str = "default", path: Path | None = None) -> dict[str, Any]:
     target = path or layout_path(name)
     try:
         data = json.loads(target.read_text(encoding="utf-8"))
         if not isinstance(data, dict) or not isinstance(data.get("widgets"), list):
-            raise TypeError
-        data["widgets"] = [
-            item for item in data["widgets"] if isinstance(item, dict) and item.get("type") in WIDGET_TYPES
-        ]
+            raise TypeError  # caught below so wrong shapes fall back instead of escaping
+        data["widgets"] = [item for item in data["widgets"] if _valid_widget(item)]
         return data
-    except (OSError, json.JSONDecodeError, ValueError):
+    except (OSError, json.JSONDecodeError, ValueError, TypeError):  # TypeError: malformed shape above
         return deepcopy(DEFAULT_LAYOUT)
 
 
