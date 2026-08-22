@@ -100,7 +100,7 @@ class GlassHUD(QWidget):
             menu = QMenu(self)
             menu.addAction("Settings", self.open_settings)
             menu.addSeparator()
-            menu.addAction("Exit", self._quit)
+            menu.addAction("Exit", self.shutdown)
             menu.exec(event.globalPosition().toPoint())
 
     def mouseMoveEvent(self, event) -> None:
@@ -112,6 +112,8 @@ class GlassHUD(QWidget):
         self.settings["window"] = {"x": self.x(), "y": self.y()}
         save_settings(self.settings)
 
-    def _quit(self) -> None:
+    def shutdown(self) -> None:
+        # Single exit path so the layout is saved whether the user exits from
+        # the HUD context menu or the tray menu.
         save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
         QApplication.instance().quit()

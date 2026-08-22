@@ -74,5 +74,7 @@ class TrayManager:
             self.show_hud()
 
     def exit_app(self) -> None:
+        # Route through the HUD's shutdown so the layout is saved exactly as
+        # with the HUD context menu's Exit action.
         self.tray.hide()
-        self.app.quit()
+        self.hud.shutdown()
