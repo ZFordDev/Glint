@@ -2,14 +2,41 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt, QTimer
+import threading
+
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
-from src.core.sensors import SensorReader
 from src.core.settings_storage import load_settings, save_settings
 from src.core.theme import color, load_theme
 from src.ui.layout import create_widgets, load_layout, save_layout
+
+
+class SensorWorker(QThread):
+    """Samples metrics off the GUI thread so slow probes never block painting."""
+
+    ready = pyqtSignal(dict)
+
+    def __init__(self, interval_ms: int) -> None:
+        super().__init__()
+        self.interval_ms = max(int(interval_ms), 50)
+        self._stop = threading.Event()
+
+    def run(self) -> None:
+        from src.core.sensors import SensorReader  # imported in the worker thread; owns its COM objects
+
+        reader = SensorReader()
+        while True:
+            data = reader.get_all(stop=self._stop)
+            if self._stop.is_set():
+                break
+            self.ready.emit(data)
+            if self._stop.wait(self.interval_ms / 1000):
+                break
+
+    def stop(self) -> None:
+        self._stop.set()
 
 
 class GlassHUD(QWidget):
@@ -19,7 +46,6 @@ class GlassHUD(QWidget):
         self.theme = load_theme(self.settings["theme"])
         self.layout_data = load_layout(self.settings["layout"])
         self.widgets = create_widgets(self.layout_data)
-        self.sensor_reader = SensorReader()
         self.drag_pos = None
         self.settings_window = None
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
@@ -35,13 +61,11 @@ class GlassHUD(QWidget):
         position = self.settings["window"]
         if position["x"] is not None and position["y"] is not None:
             self.move(position["x"], position["y"])
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_stats)
-        self.timer.start(self.settings["refresh_interval_ms"])
-        self.update_stats()
+        self.sensor_worker = SensorWorker(self.settings["refresh_interval_ms"])
+        self.sensor_worker.ready.connect(self.apply_stats)  # queued across threads
+        self.sensor_worker.start(QThread.Priority.LowPriority)
 
-    def update_stats(self) -> None:
-        data = self.sensor_reader.get_all()
+    def apply_stats(self, data: dict) -> None:
         for widget in self.widgets:
             widget.update(data)
         self.update()
@@ -50,7 +74,7 @@ class GlassHUD(QWidget):
         self.settings = save_settings(settings)
         self.theme = load_theme(self.settings["theme"])
         self.setWindowOpacity(self.settings["opacity"])
-        self.timer.setInterval(self.settings["refresh_interval_ms"])
+        self.sensor_worker.interval_ms = self.settings["refresh_interval_ms"]
         for widget in self.widgets:
             widget.set_theme(self.theme)
         self.update()
@@ -113,6 +137,9 @@ class GlassHUD(QWidget):
         save_settings(self.settings)
 
     def shutdown(self) -> None:
+        # Stop sampling first so exit never races an in-flight probe.
+        self.sensor_worker.stop()
+        self.sensor_worker.wait(5000)
         # Single exit path so the layout is saved whether the user exits from
         # the HUD context menu or the tray menu.
         save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])

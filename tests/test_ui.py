@@ -37,6 +37,7 @@ def test_hud_shutdown_saves_layout(monkeypatch):
     hud, saved = _make_hud(monkeypatch)
     hud.shutdown()
     assert len(saved) == 1  # Regression: every exit path must persist the layout.
+    assert not hud.sensor_worker.isRunning()  # Sampling must stop before quit.
     app.processEvents()
 
 
