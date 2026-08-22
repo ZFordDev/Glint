@@ -49,3 +49,30 @@ def test_tray_exit_routes_through_hud_shutdown(monkeypatch):
     tray.exit_app()
     hud.shutdown.assert_called_once()  # Regression: tray Exit used to quit without saving.
     app.processEvents()
+
+
+def test_startup_launch_arguments_frozen_vs_source(monkeypatch):
+    import sys
+
+    from src.ui.tray import TrayManager
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    assert TrayManager._launch_arguments() == [sys.executable]  # Frozen builds must not pass -m src.
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    assert TrayManager._launch_arguments() == [sys.executable, "-m", "src"]
+
+
+def test_autostart_content_quotes_executable_paths(monkeypatch):
+    from src.ui.tray import TrayManager
+
+    spaced = "C:\\Program Files\\Glint.exe"
+    monkeypatch.setattr(TrayManager, "_launch_arguments", staticmethod(lambda: [spaced]))
+
+    monkeypatch.setattr("src.ui.tray.platform.system", lambda: "Windows")
+    assert TrayManager._startup_content() == f'@start "" "{spaced}"\n'
+
+    monkeypatch.setattr("src.ui.tray.platform.system", lambda: "Linux")
+    assert f'Exec="{spaced}"' in TrayManager._startup_content()
+
+    monkeypatch.setattr("src.ui.tray.platform.system", lambda: "Darwin")
+    assert f"<string>{spaced}</string>" in TrayManager._startup_content()

@@ -41,6 +41,37 @@ class TrayManager:
             / "autostart/glint.desktop"
         )
 
+    @staticmethod
+    def _launch_arguments() -> list[str]:
+        # Frozen builds run their bundled binary directly; source checkouts
+        # must go through the interpreter with -m src.
+        if getattr(sys, "frozen", False):
+            return [sys.executable]
+        return [sys.executable, "-m", "src"]
+
+    @staticmethod
+    def _startup_content() -> str:
+        args = list(TrayManager._launch_arguments())
+        system = platform.system()
+
+        def shell_quote(value: str) -> str:
+            # Only paths can contain spaces; flags like -m never need quoting.
+            return f'"{value}"' if " " in value else value
+
+        if system == "Windows":
+            # @start swallows the first quoted token as a window title.
+            return '@start "" ' + " ".join(shell_quote(arg) for arg in args) + "\n"
+        if system == "Darwin":
+            entries = "".join(f"<string>{arg}</string>" for arg in args)
+            return (
+                '<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict>'
+                "<key>Label</key><string>dev.zford.glint</string>"
+                f"<key>ProgramArguments</key><array>{entries}</array>"
+                "<key>RunAtLoad</key><true/></dict></plist>"
+            )
+        exec_value = " ".join(shell_quote(arg) for arg in args)  # Exec requires quoting for spaces.
+        return f"[Desktop Entry]\nType=Application\nName=Glint\nExec={exec_value}\nX-GNOME-Autostart-enabled=true\n"
+
     def toggle_startup(self, enabled: bool) -> None:
         path = self.startup_path()
         try:
@@ -48,19 +79,7 @@ class TrayManager:
                 path.unlink(missing_ok=True)
                 return
             path.parent.mkdir(parents=True, exist_ok=True)
-            executable = Path(sys.executable)
-            if platform.system() == "Windows":
-                content = f'@start "" "{executable}" -m src\n'
-            elif platform.system() == "Darwin":
-                content = (
-                    f'<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict>'
-                    f"<key>Label</key><string>dev.zford.glint</string><key>ProgramArguments</key><array>"
-                    f"<string>{executable}</string><string>-m</string><string>src</string></array>"
-                    f"<key>RunAtLoad</key><true/></dict></plist>"
-                )
-            else:
-                content = f"[Desktop Entry]\nType=Application\nName=Glint\nExec={executable} -m src\nX-GNOME-Autostart-enabled=true\n"
-            path.write_text(content, encoding="utf-8")
+            path.write_text(self._startup_content(), encoding="utf-8")
         except OSError:
             self.startup_action.setChecked(not enabled)
 
