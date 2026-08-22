@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "glint-monitor"
-version = "1.0.0"
+version = "1.0.1"
 description = "A Modern Painter-Rendered Desktop System Monitor"
 readme = "README.md"
 requires-python = ">=3.10"

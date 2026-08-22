@@ -2,6 +2,26 @@
 
 All notable user-facing changes to Glint are recorded here.
 
+## v1.0.1 (2026-08-22)
+
+Stability and performance release for the 1.0 series.
+
+### Fixed
+
+- Malformed or wrong-shaped widget layout files fall back to defaults instead of preventing startup
+- Exiting from the tray menu now saves the HUD layout, matching the HUD context-menu Exit
+- Autostart entries launch frozen builds correctly and quote install paths containing spaces
+- Standalone wheel installs show the tray icon again (icon now ships inside the package)
+- Empty Windows GPU counter sets display Unavailable instead of 0%
+
+### Changed
+
+- Sensor sampling moved off the GUI thread so dragging and painting never wait on probes
+- Slow Windows GPU-counter providers throttle automatically instead of consuming a CPU core
+- Removed the unsupported legacy updater prototype
+
+[v1.0.1 release](https://github.com/ZFordDev/Glint/releases/tag/v1.0.1)
+
 ## v1.0.0 (2026-08-20)
 
 Glint's first stable release turns the original Windows prototype into a tested, cross-platform desktop monitor.
