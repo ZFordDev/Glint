@@ -6,11 +6,13 @@
 > **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
 
 ### Plan
-- Aggressive window refresh loop and focus-stealing on Windows [#19]
 
 ### Added
 
 ### Fixed
+
+- Aggressive window refresh loop and focus-stealing on Windows [#19]
+- Legacy hardware (≤4 cores and ≤8 GiB RAM) now falls back to software rendering, sidestepping the GPU/DWM recomposition loop behind the flicker
 
 ### Docs
 

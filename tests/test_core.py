@@ -165,3 +165,28 @@ def test_get_all_skips_heavy_probes_after_stop():
 
 def test_bundled_default_theme_loads():
     assert load_theme()["colors"]["text"]
+
+
+def test_low_spec_falls_back_when_cores_and_ram_are_legacy(monkeypatch):
+    from src.core import compat
+
+    monkeypatch.setattr(compat, "_logical_cores", lambda: 4)
+    monkeypatch.setattr(compat, "_total_memory", lambda: 6 * 1024**3)
+    assert compat.is_low_spec() is True
+
+
+def test_low_spec_requires_both_undersized_metrics(monkeypatch):
+    from src.core import compat
+
+    # Plenty of RAM but few cores -> not legacy enough to degrade rendering.
+    monkeypatch.setattr(compat, "_logical_cores", lambda: 2)
+    monkeypatch.setattr(compat, "_total_memory", lambda: 32 * 1024**3)
+    assert compat.is_low_spec() is False
+
+
+def test_low_spec_tolerates_missing_probes(monkeypatch):
+    from src.core import compat
+
+    monkeypatch.setattr(compat, "_logical_cores", lambda: None)
+    monkeypatch.setattr(compat, "_total_memory", lambda: None)
+    assert compat.is_low_spec() is False
