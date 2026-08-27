@@ -1,6 +1,18 @@
 # Changelog
 
-All notable user-facing changes to Glint are recorded here.
+## v1.0.2 (2026-09-04)
+
+### Info
+> **Release Cadence Update:** Planned releases are shifting from weekly to fortnightly (targeting Wednesdays) as we transition toward a monthly release cycle. Critical fixes will still be released immediately as emergency patches.
+
+### Plan
+- Aggressive window refresh loop and focus-stealing on Windows [#19]
+
+### Added
+
+### Fixed
+
+### Docs
 
 ## v1.0.1 (2026-08-22)
 
