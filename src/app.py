@@ -10,11 +10,22 @@ from src.ui.hud import GlassHUD
 from src.ui.tray import TrayManager
 
 
+def _maybe_disable_hardware_acceleration() -> None:
+    """Degrade the renderer on low-spec hosts before QApplication exists.
+
+    Must be called before ``QApplication`` is constructed, because on legacy
+    hardware the GPU/DWM recomposition of the translucent HUD causes
+    refresh/focus loops. Applied on every platform so behavior is consistent
+    regardless of the compositor or graphics stack in use.
+    """
+    if is_low_spec():
+        # Qt 6 removed AA_DisableHardwareAcceleration; AA_UseSoftwareOpenGL is
+        # its replacement and routes rendering through the software rasterizer.
+        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseSoftwareOpenGL)
+
+
 def main() -> int:
-    # Must be set before QApplication is constructed; on legacy hardware the
-    # GPU/DWM recomposition of the translucent HUD causes refresh/focus loops.
-    if sys.platform == "win32" and is_low_spec():
-        QApplication.setAttribute(Qt.ApplicationAttribute.AA_DisableHardwareAcceleration)
+    _maybe_disable_hardware_acceleration()
     app = QApplication(sys.argv)
     app.setApplicationName("Glint")
     app.setOrganizationName("ZFordDev")

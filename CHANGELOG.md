@@ -12,7 +12,8 @@
 ### Fixed
 
 - Aggressive window refresh loop and focus-stealing on Windows [#19]
-- Legacy hardware (≤4 cores and ≤8 GiB RAM) now falls back to software rendering, sidestepping the GPU/DWM recomposition loop behind the flicker
+- Legacy hardware (≤4 cores and ≤8 GiB RAM) falls back to software rendering on every platform, sidestepping the GPU/DWM recomposition loop behind the flicker
+- Software-rendering fallback uses Qt's `AA_UseSoftwareOpenGL` (Qt 6 removed `AA_DisableHardwareAcceleration`)
 
 ### Docs
 
