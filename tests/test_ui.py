@@ -77,3 +77,31 @@ def test_autostart_content_quotes_executable_paths(monkeypatch):
 
     monkeypatch.setattr("src.ui.tray.platform.system", lambda: "Darwin")
     assert f"<string>{spaced}</string>" in TrayManager._startup_content()
+
+
+def test_hardware_acceleration_disabled_when_low_spec(monkeypatch):
+    import src.app as app_module
+
+    calls = []
+    monkeypatch.setattr(app_module, "is_low_spec", lambda: True)
+    monkeypatch.setattr(
+        app_module.QApplication,
+        "setAttribute",
+        staticmethod(lambda attribute: calls.append(attribute)),
+    )
+    app_module._maybe_disable_hardware_acceleration()
+    assert calls == [app_module.Qt.ApplicationAttribute.AA_UseSoftwareOpenGL]
+
+
+def test_hardware_acceleration_kept_when_not_low_spec(monkeypatch):
+    import src.app as app_module
+
+    calls = []
+    monkeypatch.setattr(app_module, "is_low_spec", lambda: False)
+    monkeypatch.setattr(
+        app_module.QApplication,
+        "setAttribute",
+        staticmethod(lambda attribute: calls.append(attribute)),
+    )
+    app_module._maybe_disable_hardware_acceleration()
+    assert calls == []
