@@ -144,6 +144,26 @@ def test_nvidia_smi_path_is_resolved_once(monkeypatch):
     assert len(calls) == 1
 
 
+def test_nvidia_smi_suppresses_console_only_on_windows(monkeypatch):
+    import src.core.sensors as sensors_module
+
+    reader = SensorReader()
+    reader._nvidia_smi = "nvidia-smi"
+    completed = Mock(stdout="40, 55\n")
+    run = Mock(return_value=completed)
+    monkeypatch.setattr(sensors_module.subprocess, "run", run)
+    monkeypatch.setattr(sensors_module.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(sensors_module.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
+
+    assert reader._gpu() == {"usage": 40.0, "temperature": 55.0}
+    assert run.call_args.kwargs["creationflags"] == 0x08000000
+
+    run.reset_mock()
+    monkeypatch.setattr(sensors_module.platform, "system", lambda: "Linux")
+    assert reader._gpu() == {"usage": 40.0, "temperature": 55.0}
+    assert "creationflags" not in run.call_args.kwargs
+
+
 def test_get_all_skips_heavy_probes_after_stop():
     import threading
 
