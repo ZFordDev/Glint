@@ -74,12 +74,17 @@ class SensorReader:
         """Read NVIDIA CLI metrics, then vendor-neutral Windows counters."""
         if self._nvidia_smi:
             try:
+                run_options = {
+                    "capture_output": True,
+                    "text": True,
+                    "timeout": 2,
+                }
+                if platform.system() == "Windows":
+                    run_options["creationflags"] = subprocess.CREATE_NO_WINDOW
                 result = subprocess.run(
                     ["nvidia-smi", "--query-gpu=utilization.gpu,temperature.gpu", "--format=csv,noheader,nounits"],
-                    capture_output=True,
                     check=True,
-                    text=True,
-                    timeout=2,
+                    **run_options,
                 )
                 usage, temperature = result.stdout.splitlines()[0].split(",", maxsplit=1)
                 self._gpu_values = {"usage": float(usage.strip()), "temperature": float(temperature.strip())}
