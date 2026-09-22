@@ -76,7 +76,6 @@ class SensorReader:
             try:
                 run_options = {
                     "capture_output": True,
-                    "check": True,
                     "text": True,
                     "timeout": 2,
                 }
@@ -84,6 +83,7 @@ class SensorReader:
                     run_options["creationflags"] = subprocess.CREATE_NO_WINDOW
                 result = subprocess.run(
                     ["nvidia-smi", "--query-gpu=utilization.gpu,temperature.gpu", "--format=csv,noheader,nounits"],
+                    check=True,
                     **run_options,
                 )
                 usage, temperature = result.stdout.splitlines()[0].split(",", maxsplit=1)
