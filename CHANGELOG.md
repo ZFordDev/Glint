@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.3 (2026-09-22)
+
+Small but crucial maintenance patch for the 1.0 series.
+
+### Fixed
+
+- Systems with NVIDIA GPUs no longer spawn a repeated visible console window while metrics refresh, which rendered the app unusable [#21]
+
 ## v1.0.2 (2026-09-04)
 
 ### Info
