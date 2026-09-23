@@ -187,6 +187,14 @@ def test_bundled_default_theme_loads():
     assert load_theme()["colors"]["text"]
 
 
+def test_glint_version_matches_pyproject():
+    from src.core import version as version_module
+
+    with version_module.PYPROJECT.open("rb") as source:
+        expected = version_module.tomllib.load(source)["project"]["version"]
+    assert version_module.glint_version() == expected
+
+
 def test_low_spec_falls_back_when_cores_and_ram_are_legacy(monkeypatch):
     from src.core import compat
 

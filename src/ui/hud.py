@@ -5,11 +5,12 @@ from __future__ import annotations
 import threading
 
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QLinearGradient, QPainter, QPen
+from PyQt6.QtGui import QFont, QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
 from src.core.settings_storage import load_settings, save_settings
 from src.core.theme import color, load_theme
+from src.core.version import glint_version
 from src.ui.layout import create_widgets, load_layout, save_layout
 
 
@@ -109,6 +110,10 @@ class GlassHUD(QWidget):
         painter.drawRoundedRect(rect, radius, radius)
         for widget in self.widgets:
             widget.draw(painter)
+        label = glint_version()
+        painter.setFont(QFont(self.theme.get("font", "Sans Serif"), 7))
+        painter.setPen(color(self.theme, "footer", "#66F0F0F0"))
+        painter.drawText(int((self.width() - painter.fontMetrics().horizontalAdvance(label)) / 2), self.height() - 5, label)
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:

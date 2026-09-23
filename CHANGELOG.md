@@ -1,5 +1,23 @@
 # Changelog
 
+## v1.0.4 (2026-10-20)
+
+### Info
+> Glint dosnt need updates, if it works for you in its current form i wouldn't force a update just to be on the latest build, version `1.0.3` should work for most systems so updates after that will mostly be cosmetic and customisable options. 
+
+### Plan
+- add version in footer pulled from meta on build
+- add name to header (still small and non invasive )
+- add a optinable notify for updates in the menu
+
+### Added
+
+- Version number in the HUD footer, resolved from `pyproject.toml` in source checkouts and from bundled package metadata in release builds
+
+### Fixed
+
+### Docs
+
 ## v1.0.3 (2026-09-22)
 
 Small but crucial maintenance patch for the 1.0 series.

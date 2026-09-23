@@ -56,6 +56,8 @@ def build(asset_name: str, archive: str) -> Path:
         f"{ROOT / 'src' / 'themes.json'}:src",
         "--add-data",
         f"{ROOT / 'src' / 'assets'}:src/assets",
+        "--copy-metadata",
+        "glint-monitor",
         str(ROOT / "main.py"),
     ]
     subprocess.run(command, cwd=ROOT, check=True)
