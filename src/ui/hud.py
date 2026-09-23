@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import threading
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QRectF, Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
@@ -12,7 +12,8 @@ from src.core.settings_storage import load_settings, save_settings
 from src.core.theme import color, load_theme
 from src.core.update import is_newer, latest_version
 from src.core.version import glint_version
-from src.ui.layout import create_widgets, load_layout, save_layout
+from src.ui.editor import EDGE, WINDOW_GRAB, EditBar, LayoutEditor
+from src.ui.layout import DEFAULT_LAYOUT, create_widgets, load_layout, save_layout
 
 
 class SensorWorker(QThread):
@@ -92,6 +93,58 @@ class GlassHUD(QWidget):
         self.update_worker = None
         if self.settings.get("check_updates", False):
             self.start_update_checker()
+        self.editor = LayoutEditor(self)
+        self.edit_bar = EditBar(self)
+        self.edit_bar.hide()
+
+    def enter_edit_mode(self) -> None:
+        if self.editor.active:
+            return
+        self.editor.start()
+        self._place_edit_bar()
+        self.edit_bar.show()
+        self.edit_bar.raise_()
+        self.update()
+
+    def exit_edit_mode(self, save: bool) -> None:
+        if not self.editor.active:
+            return
+        if save:
+            save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
+        else:
+            self._restore_snapshot()
+        self.editor.stop()
+        self.edit_bar.hide()
+        self.unsetCursor()
+        self.update()
+
+    def reset_layout(self) -> None:
+        # Explicit, destructive action: default widgets are applied and
+        # persisted immediately from either the Settings page or the editor.
+        layout = DEFAULT_LAYOUT
+        self.widgets = create_widgets(layout)
+        for widget in self.widgets:
+            widget.set_theme(self.theme)
+        self.resize(layout["width"], layout["height"])
+        save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
+        self.update()
+
+    def _restore_snapshot(self) -> None:
+        snapshot = self.editor.snapshot
+        if snapshot is None:
+            return
+        self.widgets = create_widgets({"width": snapshot["width"], "height": snapshot["height"], "widgets": snapshot["widgets"]})
+        for widget in self.widgets:
+            widget.set_theme(self.theme)
+        self.resize(snapshot["width"], snapshot["height"])
+
+    def _place_edit_bar(self) -> None:
+        self.edit_bar.setGeometry(12, 3, max(120, self.width() - 24), 30)
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        if self.editor.active:
+            self._place_edit_bar()
 
     def apply_stats(self, data: dict) -> None:
         for widget in self.widgets:
@@ -140,7 +193,7 @@ class GlassHUD(QWidget):
         if self.settings_window is None:
             # Retain it in Python without assigning a native parent. Parented
             # widgets are presented as tool panels on several desktops.
-            self.settings_window = SettingsWindow(self.settings)
+            self.settings_window = SettingsWindow(self.settings, self)
             self.settings_window.settings_changed.connect(self.apply_settings)
         self.settings_window.show()
         self.settings_window.raise_()
@@ -177,8 +230,49 @@ class GlassHUD(QWidget):
         painter.setFont(QFont(self.theme.get("font", "Sans Serif"), 7))
         painter.setPen(color(self.theme, "footer", "#66F0F0F0"))
         painter.drawText(int((self.width() - painter.fontMetrics().horizontalAdvance(label)) / 2), self.height() - 5, label)
+        if self.editor.active:
+            self._paint_editor_overlay(painter)
+
+    def _paint_editor_overlay(self, painter: QPainter) -> None:
+        painter.setPen(QPen(color(self.theme, "border", "#2DFFFFFF"), 1, Qt.PenStyle.DashLine))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        for widget in self.widgets:
+            painter.drawRoundedRect(widget.bounds, 4, 4)
+            # Visible grab affordance matching the (generous) resize hit box.
+            grip = QRectF(widget.bounds.right() - 12, widget.bounds.bottom() - 12, 12, 12)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(color(self.theme, "warning", "#FFC850"))
+            painter.drawRoundedRect(grip, 3, 3)
+            painter.setPen(color(self.theme, "text", "#F0F0F0"))
+            for step in range(3):
+                x0 = grip.left() + 3 + step * 3
+                painter.drawLine(int(x0), int(grip.top() + 3), int(x0), int(grip.bottom() - 4))
+        # Window-corner resize grip, painted in the same 24px zone hit() uses.
+        corner = QRectF(
+            self.width() - WINDOW_GRAB, self.height() - WINDOW_GRAB, WINDOW_GRAB - EDGE, WINDOW_GRAB - EDGE
+        )
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(color(self.theme, "warning", "#FFC850"))
+        painter.drawRoundedRect(corner, 6, 6)
+        painter.setPen(color(self.theme, "text", "#F0F0F0"))
+        for step in range(3):
+            x0 = corner.left() + 4 + step * 4
+            painter.drawLine(int(x0), int(corner.top() + 4), int(x0), int(corner.bottom() - 5))
+        painter.setPen(color(self.theme, "border", "#2DFFFFFF"))
+        painter.drawText(EDGE, self.height() - 8, "Editing — drag widgets, right-click, Esc discards")
 
     def mousePressEvent(self, event) -> None:
+        pos = event.position().toPoint()
+        if self.editor.active and event.button() == Qt.MouseButton.LeftButton:
+            self.editor.press(pos)
+            self.update()
+            event.accept()
+            return
+        if self.editor.active and event.button() == Qt.MouseButton.RightButton:
+            menu = self.editor.context_menu(pos)
+            menu.exec(event.globalPosition().toPoint())
+            event.accept()
+            return
         if event.button() == Qt.MouseButton.LeftButton:
             self.drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             # Wayland rejects application-driven top-level positioning. Let
@@ -196,20 +290,48 @@ class GlassHUD(QWidget):
             menu.exec(event.globalPosition().toPoint())
 
     def mouseMoveEvent(self, event) -> None:
+        if self.editor.active:
+            self.editor.move(event.position().toPoint())
+            index, region = self.editor.hit(event.position().toPoint())
+            if region in ("resize", "window_resize"):
+                self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+            elif index >= 0:
+                self.setCursor(Qt.CursorShape.OpenHandCursor)
+            else:
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+            return
         if self.drag_pos is not None and event.buttons() & Qt.MouseButton.LeftButton:
             self.move(event.globalPosition().toPoint() - self.drag_pos)
 
     def mouseReleaseEvent(self, event) -> None:
+        if self.editor.active:
+            self.editor.release(event.position().toPoint())
+            return
         self.drag_pos = None
         self.settings["window"] = {"x": self.x(), "y": self.y()}
         save_settings(self.settings)
+
+    def keyPressEvent(self, event) -> None:
+        if self.editor.active and event.key() == Qt.Key.Key_Escape:
+            self.exit_edit_mode(save=False)
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     def shutdown(self) -> None:
         # Stop sampling first so exit never races an in-flight probe.
         self.sensor_worker.stop()
         self.sensor_worker.wait(5000)
         self.stop_update_checker()
+        if self.editor.active:
+            # Uncommitted edits must not leak into the layout on exit.
+            self.exit_edit_mode(save=False)
         # Single exit path so the layout is saved whether the user exits from
         # the HUD context menu or the tray menu.
         save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
+        if self.tray is not None:
+            # Let the platform release the tray icon before the interpreter
+            # teardown, matching the tray menu's exit path. QSystemTrayIcon's
+            # Windows backend plays poorly with widget destruction at shutdown.
+            self.tray.tray.hide()
         QApplication.instance().quit()

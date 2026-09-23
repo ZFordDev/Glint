@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
     QListWidget,
+    QPushButton,
     QSpinBox,
     QStackedWidget,
     QVBoxLayout,
@@ -23,7 +24,7 @@ from src.core.theme import load_themes
 class SettingsWindow(QWidget):
     settings_changed = pyqtSignal(dict)
 
-    def __init__(self, settings: dict) -> None:
+    def __init__(self, settings: dict, hud=None) -> None:
         # This must remain top-level instead of becoming a panel owned by the
         # frameless HUD.
         super().__init__(windowTitle="Glint Settings")
@@ -52,7 +53,17 @@ class SettingsWindow(QWidget):
         form.addRow("Opacity", self.opacity)
         form.addRow("Theme", self.theme)
         layout_page = QWidget()
-        QFormLayout(layout_page).addRow(QLabel("Layouts are stored as portable JSON in Glint's config folder."))
+        layout_form = QFormLayout(layout_page)
+        if hud is not None:
+            edit_button = QPushButton("Open Layout Editor")
+            edit_button.clicked.connect(hud.enter_edit_mode)
+            layout_form.addRow("Edit Layout", edit_button)
+            reset_button = QPushButton("Reset to defaults")
+            reset_button.clicked.connect(hud.reset_layout)
+            layout_form.addRow("Reset Layout", reset_button)
+        layout_form.addRow(
+            QLabel("Drag widgets directly on the HUD to rearrange them. Changes persist when you Save.")
+        )
         for page in (general, appearance, layout_page):
             self.pages.addWidget(page)
         layout.addWidget(self.navigation)

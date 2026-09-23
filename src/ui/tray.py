@@ -23,6 +23,7 @@ class TrayManager:
         menu = QMenu()
         menu.addAction("Show Glint", self.show_hud)
         menu.addAction("Settings", hud.open_settings)
+        menu.addAction("Edit Layout", hud.enter_edit_mode)
         self.get_update_action = QAction("Get update", menu)
         self.get_update_action.triggered.connect(self.open_releases)
         self.get_update_action.setVisible(False)

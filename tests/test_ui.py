@@ -49,7 +49,7 @@ def test_tray_get_update_visibility(monkeypatch):
     from src.ui.tray import TrayManager
 
     app = QApplication.instance() or QApplication([])
-    hud = SimpleNamespace(open_settings=lambda: None, shutdown=Mock())
+    hud = _fake_hud_hooks()
     tray = TrayManager(app, hud)
     tray.set_update_available(False)
     assert not tray.get_update_action.isVisible()
@@ -92,11 +92,15 @@ def test_hud_shutdown_saves_layout(monkeypatch):
     app.processEvents()
 
 
+def _fake_hud_hooks():
+    return SimpleNamespace(open_settings=lambda: None, enter_edit_mode=lambda: None, shutdown=Mock())
+
+
 def test_tray_exit_routes_through_hud_shutdown(monkeypatch):
     from src.ui.tray import TrayManager
 
     app = QApplication.instance() or QApplication([])
-    hud = SimpleNamespace(open_settings=lambda: None, shutdown=Mock())
+    hud = _fake_hud_hooks()
     tray = TrayManager(app, hud)
     tray.exit_app()
     hud.shutdown.assert_called_once()  # Regression: tray Exit used to quit without saving.
