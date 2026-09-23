@@ -41,6 +41,24 @@ def test_custom_title_round_trips(tmp_path):
     assert load_settings(target)["title"] == "My Rig"
 
 
+def test_check_updates_defaults_off(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text("{}", encoding="utf-8")
+    assert load_settings(target)["check_updates"] is False
+
+
+def test_check_updates_requires_boolean(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text('{"check_updates": "yes"}', encoding="utf-8")
+    assert load_settings(target)["check_updates"] is False
+
+
+def test_check_updates_round_trips(tmp_path):
+    target = tmp_path / "settings.json"
+    save_settings({**DEFAULT_SETTINGS, "check_updates": True}, target)
+    assert load_settings(target)["check_updates"] is True
+
+
 def test_layout_round_trip(tmp_path):
     widgets = create_widgets(load_layout(path=tmp_path / "missing.json"))
     target = tmp_path / "layout.json"
@@ -212,6 +230,95 @@ def test_glint_version_matches_pyproject():
     with version_module.PYPROJECT.open("rb") as source:
         expected = version_module.tomllib.load(source)["project"]["version"]
     assert version_module.glint_version() == expected
+
+
+def test_update_is_newer_matrix():
+    from src.core.update import is_newer
+
+    assert is_newer("1.0.5", "1.0.4") is True
+    assert is_newer("1.0.4", "1.0.4") is False  # equal -> up to date
+    assert is_newer("1.0.3", "1.0.4") is False  # older latest -> up to date
+    assert is_newer("banana", "1.0.4") is False  # malformed -> up to date
+    assert is_newer(None, "1.0.4") is False
+    assert is_newer("2.0.0", "1.9.9") is True
+
+
+def test_update_urls_derived_from_pyproject():
+    from src.core import update as update_module
+
+    assert (
+        update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
+    )
+    assert update_module.releases_page_url() == "https://github.com/ZFordDev/Glint/releases/latest"
+
+
+def test_repo_url_falls_back_to_installed_metadata(monkeypatch, tmp_path):
+    # Regression: shipped installs have no pyproject.toml; the repository URL
+    # must come from the bundled dist-info metadata instead.
+    from src.core import update as update_module
+
+    monkeypatch.setattr(update_module, "PYPROJECT", tmp_path / "missing.toml")
+    assert update_module.repo_url() == "https://github.com/ZFordDev/Glint"
+    assert (
+        update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
+    )
+
+
+def test_repo_url_requires_repository_entry(monkeypatch, tmp_path):
+    import importlib.metadata
+
+    from src.core import update as update_module
+
+    monkeypatch.setattr(update_module, "PYPROJECT", tmp_path / "missing.toml")
+
+    class Meta:
+        def get_all(self, key):
+            return ["Source, https://example.invalid/glint"]
+
+    monkeypatch.setattr(importlib.metadata, "metadata", lambda name: Meta())
+    assert update_module.repo_url() is None
+
+
+def test_repo_url_none_when_uninstalled(monkeypatch, tmp_path):
+    import importlib.metadata
+
+    from src.core import update as update_module
+
+    monkeypatch.setattr(update_module, "PYPROJECT", tmp_path / "missing.toml")
+
+    def no_metadata(name):
+        raise importlib.metadata.PackageNotFoundError
+
+    monkeypatch.setattr(importlib.metadata, "metadata", no_metadata)
+    assert update_module.repo_url() is None
+
+
+def test_latest_version_strips_tag_prefix(monkeypatch):
+    from src.core import update as update_module
+
+    monkeypatch.setattr(update_module, "_fetch_json", lambda url: {"tag_name": "v1.0.5"})
+    assert update_module.latest_version() == "1.0.5"
+
+
+def test_latest_version_failure_never_nags(monkeypatch):
+    from src.core import update as update_module
+    from src.core.update import is_newer
+
+    monkeypatch.setattr(update_module, "_fetch_json", lambda url: None)
+    assert update_module.latest_version() is None
+    # A malformed returned tag must still resolve to "up to date".
+    monkeypatch.setattr(update_module, "_fetch_json", lambda url: {"tag_name": "latest"})
+    assert is_newer(update_module.latest_version(), "1.0.4") is False
+
+
+def test_fetch_json_failure_is_failsafe(monkeypatch):
+    from src.core import update as update_module
+
+    def offline(url, timeout=5.0):
+        raise OSError("offline")
+
+    monkeypatch.setattr(update_module.urllib.request, "urlopen", offline)
+    assert update_module._fetch_json("https://example.invalid/") is None
 
 
 def test_low_spec_falls_back_when_cores_and_ram_are_legacy(monkeypatch):

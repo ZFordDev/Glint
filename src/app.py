@@ -33,5 +33,6 @@ def main() -> int:
     hud = GlassHUD()
     hud.show()
     tray = TrayManager(app, hud)
+    hud.tray = tray  # Lets the HUD surface update notifications in the tray menu.
     app._glint_objects = (hud, tray)  # Keep Python wrappers alive.
     return app.exec()

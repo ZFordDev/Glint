@@ -3,11 +3,14 @@
 import os
 import platform
 import sys
+import webbrowser
 from pathlib import Path
 
 from PyQt6.QtCore import QStandardPaths
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QMenu, QSystemTrayIcon
+
+from src.core.update import releases_page_url
 
 
 class TrayManager:
@@ -20,6 +23,10 @@ class TrayManager:
         menu = QMenu()
         menu.addAction("Show Glint", self.show_hud)
         menu.addAction("Settings", hud.open_settings)
+        self.get_update_action = QAction("Get update", menu)
+        self.get_update_action.triggered.connect(self.open_releases)
+        self.get_update_action.setVisible(False)
+        menu.addAction(self.get_update_action)
         self.startup_action = QAction("Run on Startup", menu, checkable=True)
         self.startup_action.setChecked(self.startup_path().exists())
         self.startup_action.triggered.connect(self.toggle_startup)
@@ -89,6 +96,16 @@ class TrayManager:
         self.hud.show()
         self.hud.raise_()
         self.hud.activateWindow()
+
+    def set_update_available(self, available: bool) -> None:
+        self.get_update_action.setVisible(available)
+
+    def open_releases(self) -> None:
+        # Glint never self-updates; opening the release page hands the
+        # decision to the user.
+        url = releases_page_url()
+        if url is not None:
+            webbrowser.open(url)
 
     def on_activated(self, reason) -> None:
         if reason == QSystemTrayIcon.ActivationReason.DoubleClick:

@@ -26,6 +26,9 @@ keywords = ["system-monitor", "hud", "qt", "desktop", "windows", "linux", "macos
 [project.scripts]
 glint = "src.app:main"
 
+[project.urls]
+Repository = "https://github.com/ZFordDev/Glint"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]

@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFormLayout,
     QHBoxLayout,
@@ -39,6 +40,9 @@ class SettingsWindow(QWidget):
         form.addRow("Refresh interval", self.refresh)
         self.title = QLineEdit(settings.get("title", "Glint"))
         form.addRow("Title Name", self.title)
+        self.update_notify = QCheckBox("Show a yellow dot when an update is available")
+        self.update_notify.setChecked(settings.get("check_updates", False))
+        form.addRow("Check for updates", self.update_notify)
         appearance = QWidget()
         form = QFormLayout(appearance)
         self.opacity = QSpinBox(minimum=20, maximum=100, suffix=" %", value=round(settings["opacity"] * 100))
@@ -60,10 +64,12 @@ class SettingsWindow(QWidget):
         self.opacity.valueChanged.connect(self._emit)
         self.theme.currentTextChanged.connect(self._emit)
         self.title.textChanged.connect(self._emit)
+        self.update_notify.toggled.connect(self._emit)
 
     def _emit(self) -> None:
         self.settings["refresh_interval_ms"] = self.refresh.value()
         self.settings["opacity"] = self.opacity.value() / 100
         self.settings["theme"] = self.theme.currentText()
         self.settings["title"] = self.title.text() or "Glint"
+        self.settings["check_updates"] = self.update_notify.isChecked()
         self.settings_changed.emit(deepcopy(self.settings))

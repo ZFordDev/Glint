@@ -14,6 +14,7 @@
 
 - Version number in the HUD footer, resolved from `pyproject.toml` in source checkouts and from bundled package metadata in release builds
 - Customizable Title Name in the HUD header, set from the Settings window (defaults to Glint)
+- Opt-in update notifications: when enabled, a yellow dot appears on the HUD and a Get update item appears in the tray menu pointing to the release page (Glint never self-updates)
 
 ### Fixed
 

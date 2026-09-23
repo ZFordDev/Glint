@@ -32,6 +32,44 @@ def test_settings_window_emits_custom_title():
     app.processEvents()
 
 
+def test_settings_window_emits_check_updates():
+    app = QApplication.instance() or QApplication([])
+    window = SettingsWindow(DEFAULT_SETTINGS)
+    emitted = []
+    window.settings_changed.connect(emitted.append)
+    window.update_notify.setChecked(True)
+    assert emitted[-1]["check_updates"] is True
+    window.update_notify.setChecked(False)
+    assert emitted[-1]["check_updates"] is False
+    window.close()
+    app.processEvents()
+
+
+def test_tray_get_update_visibility(monkeypatch):
+    from src.ui.tray import TrayManager
+
+    app = QApplication.instance() or QApplication([])
+    hud = SimpleNamespace(open_settings=lambda: None, shutdown=Mock())
+    tray = TrayManager(app, hud)
+    tray.set_update_available(False)
+    assert not tray.get_update_action.isVisible()
+    tray.set_update_available(True)
+    assert tray.get_update_action.isVisible()
+    app.processEvents()
+
+
+def test_open_releases_uses_github_page(monkeypatch):
+    from src.ui.tray import TrayManager
+
+    app = QApplication.instance() or QApplication([])
+    calls = []
+    monkeypatch.setattr("src.ui.tray.webbrowser.open", lambda url: calls.append(url))
+    tray = TrayManager(app, Mock())
+    tray.open_releases()
+    assert calls == ["https://github.com/ZFordDev/Glint/releases/latest"]
+    app.processEvents()
+
+
 def _make_hud(monkeypatch):
     """Build a real GlassHUD with storage redirected away from the user config."""
     import src.ui.hud as hud_module

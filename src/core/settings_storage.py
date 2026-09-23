@@ -16,6 +16,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "theme": "default",
     "layout": "default",
     "title": "Glint",
+    "check_updates": False,
     "window": {"x": None, "y": None},
 }
 
@@ -40,6 +41,8 @@ def _validated(data: object) -> dict[str, Any]:
     for key in ("theme", "layout", "title"):
         if isinstance(data.get(key), str) and data[key]:
             result[key] = data[key]
+    if isinstance(data.get("check_updates"), bool):
+        result["check_updates"] = data["check_updates"]
     window = data.get("window")
     if isinstance(window, dict):
         for coordinate in ("x", "y"):

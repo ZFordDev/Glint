@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
 from src.core.settings_storage import load_settings, save_settings
 from src.core.theme import color, load_theme
+from src.core.update import is_newer, latest_version
 from src.core.version import glint_version
 from src.ui.layout import create_widgets, load_layout, save_layout
 
@@ -34,6 +35,27 @@ class SensorWorker(QThread):
                 break
             self.ready.emit(data)
             if self._stop.wait(self.interval_ms / 1000):
+                break
+
+    def stop(self) -> None:
+        self._stop.set()
+
+
+class UpdateChecker(QThread):
+    """Polls the latest release tag off the GUI thread when updates are opted in."""
+
+    checked = pyqtSignal(bool)
+
+    CHECK_INTERVAL_MS = 60 * 60 * 1000
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._stop = threading.Event()
+
+    def run(self) -> None:
+        while True:
+            self.checked.emit(is_newer(latest_version(), glint_version()))
+            if self._stop.wait(self.CHECK_INTERVAL_MS / 1000):
                 break
 
     def stop(self) -> None:
@@ -65,6 +87,11 @@ class GlassHUD(QWidget):
         self.sensor_worker = SensorWorker(self.settings["refresh_interval_ms"])
         self.sensor_worker.ready.connect(self.apply_stats)  # queued across threads
         self.sensor_worker.start(QThread.Priority.LowPriority)
+        self.tray = None
+        self.update_available = False
+        self.update_worker = None
+        if self.settings.get("check_updates", False):
+            self.start_update_checker()
 
     def apply_stats(self, data: dict) -> None:
         for widget in self.widgets:
@@ -78,6 +105,33 @@ class GlassHUD(QWidget):
         self.sensor_worker.interval_ms = self.settings["refresh_interval_ms"]
         for widget in self.widgets:
             widget.set_theme(self.theme)
+        if self.settings.get("check_updates", False):
+            self.start_update_checker()
+        else:
+            self.stop_update_checker()
+            self.update_available = False
+            if self.tray is not None:
+                self.tray.set_update_available(False)
+        self.update()
+
+    def start_update_checker(self) -> None:
+        if self.update_worker is not None:
+            return
+        self.update_worker = UpdateChecker()
+        self.update_worker.checked.connect(self._on_update_check)
+        self.update_worker.start(QThread.Priority.LowPriority)
+
+    def stop_update_checker(self) -> None:
+        if self.update_worker is None:
+            return
+        self.update_worker.stop()
+        self.update_worker.wait(5000)
+        self.update_worker = None
+
+    def _on_update_check(self, available: bool) -> None:
+        self.update_available = available
+        if self.tray is not None:
+            self.tray.set_update_available(available)
         self.update()
 
     def open_settings(self) -> None:
@@ -111,7 +165,12 @@ class GlassHUD(QWidget):
         title = self.settings.get("title", "Glint")
         painter.setFont(QFont(self.theme.get("font", "Sans Serif"), 8))
         painter.setPen(color(self.theme, "header", "#80F0F0F0"))
-        painter.drawText(int((self.width() - painter.fontMetrics().horizontalAdvance(title)) / 2), 13, title)
+        title_width = painter.fontMetrics().horizontalAdvance(title)
+        painter.drawText((self.width() - title_width) // 2, 13, title)
+        if self.update_available:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(color(self.theme, "warning", "#FFC850"))
+            painter.drawEllipse(self.width() // 2 + title_width // 2 + 4, 8, 4, 4)
         for widget in self.widgets:
             widget.draw(painter)
         label = glint_version()
@@ -149,6 +208,7 @@ class GlassHUD(QWidget):
         # Stop sampling first so exit never races an in-flight probe.
         self.sensor_worker.stop()
         self.sensor_worker.wait(5000)
+        self.stop_update_checker()
         # Single exit path so the layout is saved whether the user exits from
         # the HUD context menu or the tray menu.
         save_layout(self.widgets, self.width(), self.height(), self.settings["layout"])
