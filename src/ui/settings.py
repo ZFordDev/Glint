@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListWidget,
     QSpinBox,
     QStackedWidget,
@@ -36,6 +37,8 @@ class SettingsWindow(QWidget):
         form = QFormLayout(general)
         self.refresh = QSpinBox(minimum=250, maximum=60_000, suffix=" ms", value=settings["refresh_interval_ms"])
         form.addRow("Refresh interval", self.refresh)
+        self.title = QLineEdit(settings.get("title", "Glint"))
+        form.addRow("Title Name", self.title)
         appearance = QWidget()
         form = QFormLayout(appearance)
         self.opacity = QSpinBox(minimum=20, maximum=100, suffix=" %", value=round(settings["opacity"] * 100))
@@ -56,9 +59,11 @@ class SettingsWindow(QWidget):
         self.refresh.valueChanged.connect(self._emit)
         self.opacity.valueChanged.connect(self._emit)
         self.theme.currentTextChanged.connect(self._emit)
+        self.title.textChanged.connect(self._emit)
 
     def _emit(self) -> None:
         self.settings["refresh_interval_ms"] = self.refresh.value()
         self.settings["opacity"] = self.opacity.value() / 100
         self.settings["theme"] = self.theme.currentText()
+        self.settings["title"] = self.title.text() or "Glint"
         self.settings_changed.emit(deepcopy(self.settings))

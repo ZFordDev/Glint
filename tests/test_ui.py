@@ -19,6 +19,19 @@ def test_settings_is_an_independent_window():
     app.processEvents()
 
 
+def test_settings_window_emits_custom_title():
+    app = QApplication.instance() or QApplication([])
+    window = SettingsWindow(DEFAULT_SETTINGS)
+    emitted = []
+    window.settings_changed.connect(emitted.append)
+    window.title.setText("My Rig")
+    assert emitted[-1]["title"] == "My Rig"
+    window.title.setText("")
+    assert emitted[-1]["title"] == "Glint"
+    window.close()
+    app.processEvents()
+
+
 def _make_hud(monkeypatch):
     """Build a real GlassHUD with storage redirected away from the user config."""
     import src.ui.hud as hud_module

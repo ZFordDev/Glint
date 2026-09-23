@@ -22,6 +22,25 @@ def test_invalid_json_uses_defaults(tmp_path):
     assert load_settings(target) == DEFAULT_SETTINGS
 
 
+def test_old_settings_default_to_glint_title(tmp_path):
+    # Regression: settings written by earlier builds lack the "title" field.
+    target = tmp_path / "settings.json"
+    target.write_text('{"theme": "default"}', encoding="utf-8")
+    assert load_settings(target)["title"] == "Glint"
+
+
+def test_empty_title_falls_back_to_glint(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text('{"title": ""}', encoding="utf-8")
+    assert load_settings(target)["title"] == "Glint"
+
+
+def test_custom_title_round_trips(tmp_path):
+    target = tmp_path / "settings.json"
+    save_settings({**DEFAULT_SETTINGS, "title": "My Rig"}, target)
+    assert load_settings(target)["title"] == "My Rig"
+
+
 def test_layout_round_trip(tmp_path):
     widgets = create_widgets(load_layout(path=tmp_path / "missing.json"))
     target = tmp_path / "layout.json"

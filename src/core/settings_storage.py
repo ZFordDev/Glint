@@ -15,6 +15,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "opacity": 1.0,
     "theme": "default",
     "layout": "default",
+    "title": "Glint",
     "window": {"x": None, "y": None},
 }
 
@@ -36,7 +37,7 @@ def _validated(data: object) -> dict[str, Any]:
     opacity = data.get("opacity")
     if isinstance(opacity, (int, float)) and 0.2 <= opacity <= 1:
         result["opacity"] = float(opacity)
-    for key in ("theme", "layout"):
+    for key in ("theme", "layout", "title"):
         if isinstance(data.get(key), str) and data[key]:
             result[key] = data[key]
     window = data.get("window")

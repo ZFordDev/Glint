@@ -108,6 +108,10 @@ class GlassHUD(QWidget):
         painter.setPen(QPen(color(self.theme, "border", "#2DFFFFFF"), 1))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRoundedRect(rect, radius, radius)
+        title = self.settings.get("title", "Glint")
+        painter.setFont(QFont(self.theme.get("font", "Sans Serif"), 8))
+        painter.setPen(color(self.theme, "header", "#80F0F0F0"))
+        painter.drawText(int((self.width() - painter.fontMetrics().horizontalAdvance(title)) / 2), 13, title)
         for widget in self.widgets:
             widget.draw(painter)
         label = glint_version()
