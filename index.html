@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Glint is a quiet, always-in-your-corner system monitor for your desktop.">
+    <title>Glint — always in your corner</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/ZFordDev/Glint/main/src/assets/icon.svg">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="page">
+      <div class="wrap">
+        <nav>
+          <a class="brand" href=".">
+            <img src="https://raw.githubusercontent.com/ZFordDev/Glint/main/src/assets/icon.svg" alt="">
+            <span>Glint</span>
+          </a>
+          <div class="links">
+            <a href="#downloads">Downloads</a>
+            <a href="https://github.com/ZFordDev/Glint">GitHub ↗</a>
+          </div>
+        </nav>
+        <main>
+          <section class="hero">
+            <div>
+              <div class="eyebrow">A quiet system monitor</div>
+              <h1>Always in your corner.</h1>
+              <p class="hero-copy">Glint keeps an eye on your desktop without getting in the way. A small, clear window into the things that matter.</p>
+              <div class="actions">
+                <a class="button primary" href="https://github.com/ZFordDev/Glint/releases/latest">Download Glint <span aria-hidden="true">&nbsp;→</span>
+              </a>
+              <a class="button ghost" href="#downloads">Browse releases</a>
+              <a class="button support" href="https://zforddev.itch.io/glint">Support Glint <span aria-hidden="true">&nbsp;↗</span>
+              </a>
+            </div>
+          </div>
+          <div class="monitor" aria-label="Illustration of the Glint system monitor">
+            <div class="glass">
+              <div class="glass-head">
+                <span class="title">Glint</span>
+                <span class="live" title="Update available"></span>
+              </div>
+              <div class="metric">
+                <div class="metric-line">
+                  <span>CPU</span>
+                  <b>18%</b>
+                </div>
+                <div class="track">
+                  <div class="fill" style="width:18%">
+                  </div>
+                </div>
+              </div>
+              <div class="metric">
+                <div class="metric-line">
+                  <span>MEMORY</span>
+                  <b>42%</b>
+                </div>
+                <div class="track">
+                  <div class="fill" style="width:42%">
+                  </div>
+                </div>
+              </div>
+              <div class="metric">
+                <div class="metric-line">
+                  <span>DISK</span>
+                  <b>37%</b>
+                </div>
+                <div class="track">
+                  <div class="fill" style="width:37%">
+                  </div>
+                </div>
+              </div>
+              <div class="metric">
+                <div class="metric-line">
+                  <span>GPU</span>
+                  <b>12%</b>
+                </div>
+                <div class="track">
+                  <div class="fill" style="width:12%">
+                  </div>
+                </div>
+              </div>
+              <div class="metric">
+                <div class="metric-line">
+                  <span>GPU TEMP</span>
+                  <b>43°C</b>
+                </div>
+                <div class="track">
+                  <div class="fill" style="width:43%">
+                  </div>
+                </div>
+              </div>
+              <div class="network">NETWORK&nbsp;&nbsp; ↓ 128.0 KB/s&nbsp;&nbsp; ↑ 24.0 KB/s</div>
+              <div class="version">v1.0.4</div>
+            </div>
+          </div>
+        </section>
+        <section class="section" id="downloads">
+          <div class="wrap archive">
+            <div class="section-heading">
+              <div>
+                <div class="eyebrow">Get the latest build</div>
+                <h2>Choose your version.</h2>
+              </div>
+              <p>Download an original package from GitHub, or search the complete release history when you need an older build.</p>
+            </div>
+            <div class="tools">
+              <input id="releaseSearch" class="search" type="search" placeholder="Search versions or packages…" aria-label="Search releases">
+              <button class="filter active" data-platform="all">All</button>
+              <button class="filter" data-platform="windows">Windows</button>
+              <button class="filter" data-platform="macos">macOS</button>
+              <button class="filter" data-platform="linux">Linux</button>
+            </div>
+            <p id="releaseStatus" role="status">Loading releases from GitHub…</p>
+            <div id="releaseList">
+            </div>
+            <noscript>
+              <p>JavaScript is required for the release archive. <a href="https://github.com/ZFordDev/Glint/releases">Browse GitHub Releases</a>.</p>
+            </noscript>
+          </div>
+        </section>
+      </main>
+      <footer>
+        <div class="footer-side">
+          <span>© 2026 ZFordDev · Glint is open source under the MIT License.</span>
+          <div class="support">Support Glint:
+            <a href="https://zforddev.itch.io/glint">itch.io</a> ·
+            <a href="https://ko-fi.com/s/20cd6a98a1">Ko-fi</a> ·
+            <a href="https://github.com/sponsors/ZFordDev">GitHub Sponsors</a>
+          </div>
+        </div>
+        <a href="https://github.com/ZFordDev/Glint">View source ↗</a>
+      </footer>
+    </div>
+  </div>
+  <script src="script.js" type="module"></script>
+</body>
+</html>
