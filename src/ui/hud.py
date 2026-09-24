@@ -9,7 +9,7 @@ from PyQt6.QtGui import QFont, QLinearGradient, QPainter, QPen
 from PyQt6.QtWidgets import QApplication, QMenu, QWidget
 
 from src.core.settings_storage import load_settings, save_settings
-from src.core.theme import color, load_theme
+from src.core.theme import build_theme, color
 from src.core.update import is_newer, latest_version
 from src.core.version import glint_version
 from src.ui.editor import EDGE, WINDOW_GRAB, EditBar, LayoutEditor
@@ -67,7 +67,7 @@ class GlassHUD(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.settings = load_settings()
-        self.theme = load_theme(self.settings["theme"])
+        self.theme = build_theme(self.settings["theme"], self.settings.get("custom_theme", {}))
         self.layout_data = load_layout(self.settings["layout"])
         self.widgets = create_widgets(self.layout_data)
         self.drag_pos = None
@@ -153,7 +153,7 @@ class GlassHUD(QWidget):
 
     def apply_settings(self, settings: dict) -> None:
         self.settings = save_settings(settings)
-        self.theme = load_theme(self.settings["theme"])
+        self.theme = build_theme(self.settings["theme"], self.settings.get("custom_theme", {}))
         self.setWindowOpacity(self.settings["opacity"])
         self.sensor_worker.interval_ms = self.settings["refresh_interval_ms"]
         for widget in self.widgets:

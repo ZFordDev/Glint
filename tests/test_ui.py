@@ -45,6 +45,72 @@ def test_settings_window_emits_check_updates():
     app.processEvents()
 
 
+def test_settings_window_custom_theme_populates_rows():
+    from PyQt6.QtGui import QColor
+
+    app = QApplication.instance() or QApplication([])
+    window = SettingsWindow({**DEFAULT_SETTINGS, "custom_theme": {"text": "#80ABCDEF"}})
+    for key, _swatch, hex_label in window._rows:
+        if key == "text":
+            assert QColor(hex_label.text()).name(QColor.NameFormat.HexArgb) == "#80abcdef"
+            break
+    else:
+        raise AssertionError("text color row missing")
+    window.close()
+    app.processEvents()
+
+
+def test_settings_window_apply_override_emits_custom_theme():
+    from PyQt6.QtGui import QColor
+
+    app = QApplication.instance() or QApplication([])
+    window = SettingsWindow(DEFAULT_SETTINGS)
+    emitted = []
+    window.settings_changed.connect(emitted.append)
+    window.apply_override("warning", QColor("#80FFC850"))
+    assert window.overrides == {"warning": "#80ffc850"}
+    assert emitted[-1]["custom_theme"] == {"warning": "#80ffc850"}
+    window.close()
+    app.processEvents()
+
+
+def test_settings_window_reset_restores_theme_defaults():
+    app = QApplication.instance() or QApplication([])
+    window = SettingsWindow({**DEFAULT_SETTINGS, "custom_theme": {"text": "#FF123456", "border": "#FFFF0000"}})
+    emitted = []
+    window.settings_changed.connect(emitted.append)
+    window._reset_override("text")
+    assert window.overrides == {"border": "#FFFF0000"}
+    window._reset_all()
+    assert window.overrides == {}
+    assert emitted[-1]["custom_theme"] == {}
+    window.close()
+    app.processEvents()
+
+
+def test_hud_builds_theme_with_overrides(monkeypatch):
+    app = QApplication.instance() or QApplication([])
+    hud, _ = _make_hud(
+        monkeypatch,
+        {**DEFAULT_SETTINGS, "custom_theme": {"warning": "#FF123456", "bogus": "#ABCDEF"}},
+    )
+    assert hud.theme["colors"]["warning"] == "#ff123456"
+    assert "bogus" not in hud.theme["colors"]
+    assert hud.theme["colors"]["border"] == "#2DFFFFFF"  # untouched base value stays raw
+    app.processEvents()
+
+
+def test_hud_apply_settings_merges_custom_theme(monkeypatch):
+    from PyQt6.QtGui import QColor
+
+    app = QApplication.instance() or QApplication([])
+    hud, _ = _make_hud(monkeypatch)
+    updated = {**DEFAULT_SETTINGS, "custom_theme": {"track": "#FF654321"}}
+    hud.apply_settings(updated)
+    assert hud.theme["colors"]["track"] == QColor("#FF654321").name(QColor.NameFormat.HexArgb)
+    app.processEvents()
+
+
 def test_tray_get_update_visibility(monkeypatch):
     from src.ui.tray import TrayManager
 
@@ -70,11 +136,12 @@ def test_open_releases_uses_github_page(monkeypatch):
     app.processEvents()
 
 
-def _make_hud(monkeypatch):
+def _make_hud(monkeypatch, settings=None):
     """Build a real GlassHUD with storage redirected away from the user config."""
     import src.ui.hud as hud_module
 
-    monkeypatch.setattr(hud_module, "load_settings", lambda: dict(DEFAULT_SETTINGS))
+    baseline = dict(settings) if settings is not None else dict(DEFAULT_SETTINGS)
+    monkeypatch.setattr(hud_module, "load_settings", lambda: dict(baseline))
     monkeypatch.setattr(hud_module, "save_settings", lambda settings: settings)
     monkeypatch.setattr(hud_module, "load_layout", lambda *a, **k: {"width": 280, "height": 290, "widgets": []})
     saved_layouts = []

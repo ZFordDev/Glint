@@ -10,7 +10,7 @@
 - add name to header (still small and non invasive )
 - add a optinable notify for updates in the menu
 - ~~building settings/layout~~
-- adding custom theme otions in settings/appearance
+- ~~adding custom theme otions in settings/appearance~~
 
 ### Added
 
@@ -18,6 +18,7 @@
 - Customizable Title Name in the HUD header, set from the Settings window (defaults to Glint)
 - Opt-in update notifications: when enabled, a yellow dot appears on the HUD and a Get update item appears in the tray menu pointing to the release page (Glint never self-updates)
 - Live on-HUD layout editor (Edit Layout in the tray or Settings): drag widgets, resize them from their corner grip, resize the HUD from the window corner, and remove or add widgets from the right-click menu — Save persists, Discard and Esc revert, Reset restores the defaults. An optional Snap to grid toggle in the edit bar aligns widget positions and sizes, and the corner grips are sized to be forgiving of near-misses
+- Per-color theme overrides in Settings → Appearance: pick any of the 11 theme colors (alpha included) for the HUD, layered on top of the selected theme and persisted in settings — Reset buttons restore the theme default per color, and a live Preview applies changes to the HUD immediately
 
 ### Fixed
 

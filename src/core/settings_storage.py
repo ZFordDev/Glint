@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from PyQt6.QtCore import QStandardPaths
+from PyQt6.QtGui import QColor
+
+from src.core.theme import THEME_COLOR_KEYS
 
 DEFAULT_SETTINGS: dict[str, Any] = {
     "schema_version": 1,
@@ -17,6 +20,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "layout": "default",
     "title": "Glint",
     "check_updates": False,
+    "custom_theme": {},
     "window": {"x": None, "y": None},
 }
 
@@ -43,6 +47,14 @@ def _validated(data: object) -> dict[str, Any]:
             result[key] = data[key]
     if isinstance(data.get("check_updates"), bool):
         result["check_updates"] = data["check_updates"]
+    custom = data.get("custom_theme")
+    if isinstance(custom, dict):
+        for key, value in custom.items():
+            if key not in THEME_COLOR_KEYS or not isinstance(value, str):
+                continue
+            parsed = QColor(value)
+            if parsed.isValid():
+                result["custom_theme"][key] = parsed.name(QColor.NameFormat.HexArgb)
     window = data.get("window")
     if isinstance(window, dict):
         for coordinate in ("x", "y"):

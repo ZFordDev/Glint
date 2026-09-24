@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 from src.core.sensors import SensorReader
 from src.core.settings_storage import DEFAULT_SETTINGS, load_settings, save_settings
-from src.core.theme import load_theme
+from src.core.theme import build_theme, load_theme
 from src.ui.layout import create_widgets, load_layout, save_layout
 
 
@@ -222,6 +222,42 @@ def test_get_all_skips_heavy_probes_after_stop():
 
 def test_bundled_default_theme_loads():
     assert load_theme()["colors"]["text"]
+
+
+def test_custom_theme_defaults_to_empty(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text('{"theme": "default"}', encoding="utf-8")
+    assert load_settings(target)["custom_theme"] == {}
+
+
+def test_custom_theme_round_trips(tmp_path):
+    target = tmp_path / "settings.json"
+    overrides = {"text": "#FFABCDEF", "warning": "#80FFC850"}
+    save_settings({**DEFAULT_SETTINGS, "custom_theme": overrides}, target)
+    assert load_settings(target)["custom_theme"] == {"text": "#ffabcdef", "warning": "#80ffc850"}
+
+
+def test_custom_theme_filters_invalid_entries(tmp_path):
+    target = tmp_path / "settings.json"
+    target.write_text(
+        '{"custom_theme": {"text": "#FFABCDEF", "bogus": "#112233",'
+        ' "border": "not-a-color", "track": 7}}',
+        encoding="utf-8",
+    )
+    assert load_settings(target)["custom_theme"] == {"text": "#ffabcdef"}
+
+
+def test_build_theme_merges_overrides_and_ignores_junk():
+    merged = build_theme("default", {"text": "#ABCDEF", "bogus": "#112233", "border": "nope"})
+    assert merged["colors"]["text"] == "#ffabcdef"  # canonical #aarrggbb, alpha preserved
+    assert "bogus" not in merged["colors"]
+    assert merged["colors"]["border"] == load_theme("default")["colors"]["border"]
+
+
+def test_build_theme_does_not_mutate_base_theme():
+    base = load_theme("default")
+    build_theme("default", {"warning": "#FFFF0000"})
+    assert load_theme("default")["colors"]["warning"] == base["colors"]["warning"]
 
 
 def test_glint_version_matches_pyproject():
