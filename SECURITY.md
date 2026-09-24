@@ -29,6 +29,8 @@ The following are generally outside scope unless they create a vulnerability in 
 
 ## Security characteristics
 
-Glint reads local operating-system metrics and may call locally installed facilities such as WMI or `nvidia-smi`. It does not require administrator privileges, expose a network service, collect telemetry, or transmit sensor readings. Preferences and layouts are stored locally in the platform application configuration directory.
+Glint reads local operating-system metrics and may call locally installed facilities such as WMI or `nvidia-smi`. It does not require administrator privileges or expose a listening network service. Sensor readings, preferences, and layouts remain local.
+
+The optional update notification checks GitHub's public Releases API when enabled by the user. It sends no sensor readings, preferences, layouts, or Glint-specific identifier. Update checking is disabled by default, can be disabled in Settings, and never downloads or installs an update automatically. Users in restricted or offline environments should leave it disabled.
 
 Official archives are currently unsigned. Verify downloads against the `SHA256SUMS` file attached to the same GitHub Release and obtain releases only from `github.com/ZFordDev/Glint`.

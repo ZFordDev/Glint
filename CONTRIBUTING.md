@@ -16,7 +16,7 @@ Please report security vulnerabilities through the private process in [SECURITY.
 Glint requires Python 3.10 or later and a graphical desktop session.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/Glint.git
+git clone https://github.com/ZFordDev/Glint.git
 cd Glint
 python -m venv .venv
 # Windows: .venv\Scripts\activate
@@ -39,7 +39,9 @@ git switch -c fix/short-description
 - Avoid heavy dependencies unless the benefit clearly justifies the download and maintenance cost.
 - Keep drawing logic in the UI layer and sensor collection in `src/core/`.
 - Update the README and DocsHub pages when behavior, packaging, or platform support changes.
+- Update `PRIVACY.md` and `SECURITY.md` when data access, local storage, dependencies, or network behavior changes.
 - Do not turn sensor readings into persistent history, telemetry, or network traffic without prior discussion.
+- Keep update checks opt-in and ensure any network request remains limited to checking public release metadata.
 
 ## Testing
 
@@ -53,7 +55,7 @@ python -m pytest
 
 Also launch Glint and manually exercise the changed workflow. Platform-sensitive changes should be tested on Windows, macOS, and Linux when possible. If you cannot test a platform, say so clearly in the pull request.
 
-For UI changes, check HUD dragging, the independent Settings window, tray restoration, opacity, both built-in themes, and behavior when optional sensor values are unavailable. For release changes, use the GitHub Release workflow's non-publishing rehearsal mode or run the equivalent release-script validation locally.
+For UI changes, check HUD dragging, the independent Settings window, tray restoration, opacity, both built-in themes, customizable title text, layout editing, color overrides, update-notification settings, and behavior when optional sensor values are unavailable. For release changes, dispatch the GitHub Release workflow with `publish` set to `false`, or run the equivalent release-script validation locally. Never publish rehearsal artifacts.
 
 ## Pull requests
 

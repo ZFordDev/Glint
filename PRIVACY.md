@@ -1,6 +1,6 @@
 # Glint Privacy Statement
 
-**Effective date:** v1.0.0 (August 2026)
+**Effective date:** v1.0.4 (September 2026)
 
 ## Local-only monitoring
 
@@ -25,9 +25,11 @@ Glint has:
 - no analytics or telemetry;
 - no advertising or tracking;
 - no cloud storage or synchronisation; and
-- no built-in network update checker.
+- an optional update checker that contacts GitHub only when you enable it in Settings.
 
-Updates are downloaded manually from [GitHub Releases](https://github.com/ZFordDev/Glint/releases). Visiting GitHub is governed by GitHub's own privacy terms; the Glint application itself does not contact GitHub.
+When update checking is enabled, Glint makes a background request to the GitHub Releases API to see whether a newer release tag exists. The request is made without an account or Glint-specific identifier. GitHub may process the request's normal network metadata under [GitHub's privacy terms](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement). Glint does not send sensor readings, preferences, layouts, usernames, hostnames, or other application data in that request.
+
+Update checking is disabled by default. You can turn it off at any time in Settings. Glint never downloads or installs updates itself; selecting an available update opens the GitHub release page in your browser. You can also download releases manually from [GitHub Releases](https://github.com/ZFordDev/Glint/releases).
 
 ## Questions
 

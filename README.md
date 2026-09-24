@@ -41,7 +41,8 @@ fits your desktop, and get back to what you were doing.
 - Keeps CPU, RAM, storage and network activity visible at a glance
 - Shows GPU usage and temperatures when your system exposes them
 - Sits quietly on your desktop in a small, frameless HUD
-- Lets you adjust the theme, opacity and refresh rate
+- Lets you adjust the theme, colours, opacity and refresh rate
+- Rearranges and resizes widgets right on the HUD with a built-in layout editor
 - Remembers where you put it
 - Lives in the system tray when you need it
 - Can start automatically with Windows, macOS or Linux
@@ -49,7 +50,7 @@ fits your desktop, and get back to what you were doing.
 
 ## Download
 
-Grab the archive for your system from the [latest GitHub Release](https://github.com/ZFordDev/Glint/releases/latest):
+Grab the archive for your system from the [Glint release portal](https://zforddev.github.io/Glint), which presents the latest GitHub Release in a readable format:
 
 | Platform | Release asset |
 | --- | --- |
@@ -71,12 +72,13 @@ On Windows, launch `Glint.exe`. On macOS and Linux, launch `Glint`. Release chec
 | --- | --- |
 | Left-click and drag the HUD | Move Glint - it'll remember where you left it |
 | Right-click the HUD | Open Settings or exit Glint |
+| Tray → *Edit Layout* (or Settings → Layout) | Edit widgets live on your desktop: drag them around, resize from any corner, and snap them to a neat grid. Right-click a widget there to add or remove one. *Save* keeps the changes, *Discard* / *Esc* throws the session away |
 | Double-click the tray icon | Show and raise the HUD |
 | Open the tray menu | Show Glint, open Settings, manage autostart, or exit |
 
 Settings and layouts are stored in your operating system's application configuration directory.
 
-Want to make Glint a little more your own? The generated `default_layout.json` can be edited to change the HUD size, widget order, positions and disk selection.
+Want to make Glint a little more your own? Use the tray's *Edit Layout* to rearrange widgets, resize them from their corner, snap to the grid, and pick the disk to watch. Tune the look in Settings → Appearance - swap between bundled themes or fine-tune individual colours on top of your chosen theme. For deeper edits, `themes.json` covers the font, corner radius and colour palette, while `default_layout.json` controls the HUD size, widget order, positions and disk selection.
 
 See the [Glint documentation](https://docs.zford.dev/zforddev/glint/) for examples and platform-specific notes.
 
@@ -143,9 +145,9 @@ The test workflow runs on Windows, macOS and Linux for every pull request and pu
 
 Glint is stable and ready for everyday use on Windows, macOS and Linux.
 
-The project is intentionally kept simple. There are no accounts, background services or built-in updater to maintain. When a new version is available, you can grab it from the latest GitHub Release.
+The project is intentionally kept simple. There are no accounts or background services, and Glint never downloads or installs updates itself. Optional update notifications are disabled by default; when enabled, Glint checks GitHub for a newer release and lets you open the release portal when one is available.
 
-Every release is built and tested through GitHub Actions across Windows and Linux, with formatting, linting, tests and version checks completed before the release archives are created.
+Every release is built and tested through GitHub Actions across Windows, macOS and Linux, with formatting, linting, tests and version checks completed before the release archives are created.
 
 Want to know how Glint is put together? The [architecture and maintenance notes](https://docs.zford.dev/zforddev/glint/maintenance/) go into the nerdier details.
 
