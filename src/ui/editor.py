@@ -89,9 +89,9 @@ class LayoutEditor:
                 return index, "resize"
             if bounds.adjusted(-4, -4, 4, 4).contains(point):
                 return index, "move"
-        if QRectF(
-            self.hud.width() - WINDOW_GRAB, self.hud.height() - WINDOW_GRAB, WINDOW_GRAB, WINDOW_GRAB
-        ).contains(point):
+        if QRectF(self.hud.width() - WINDOW_GRAB, self.hud.height() - WINDOW_GRAB, WINDOW_GRAB, WINDOW_GRAB).contains(
+            point
+        ):
             return -1, "window_resize"
         return -1, ""
 

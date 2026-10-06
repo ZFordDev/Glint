@@ -97,9 +97,7 @@ class SettingsWindow(QWidget):
             reset_button = QPushButton("Reset to defaults")
             reset_button.clicked.connect(hud.reset_layout)
             layout_form.addRow("Reset Layout", reset_button)
-        layout_form.addRow(
-            QLabel("Drag widgets directly on the HUD to rearrange them. Changes persist when you Save.")
-        )
+        layout_form.addRow(QLabel("Drag widgets directly on the HUD to rearrange them. Changes persist when you Save."))
         for page in (general, appearance, layout_page):
             self.pages.addWidget(page)
         layout.addWidget(self.navigation)

@@ -119,9 +119,7 @@ def test_add_widget_places_and_themes(monkeypatch):
 def test_remove_widget(monkeypatch):
     hud, _ = _make_hud(monkeypatch)
     hud.editor.remove(0)
-    assert [widget.widget_type for widget in hud.widgets] == [
-        "ram", "disk", "gpu_usage", "gpu_temp", "network"
-    ]
+    assert [widget.widget_type for widget in hud.widgets] == ["ram", "disk", "gpu_usage", "gpu_temp", "network"]
     _stop(hud)
 
 
@@ -137,9 +135,7 @@ def test_reset_restores_default_layout(monkeypatch):
     hud.enter_edit_mode()
     hud.editor.remove(0)
     hud.reset_layout()
-    assert [widget.widget_type for widget in hud.widgets] == [
-        "cpu", "ram", "disk", "gpu_usage", "gpu_temp", "network"
-    ]
+    assert [widget.widget_type for widget in hud.widgets] == ["cpu", "ram", "disk", "gpu_usage", "gpu_temp", "network"]
     assert (hud.width(), hud.height()) == (280, 290)
     assert len(saved) == 1  # reset persists immediately
     _stop(hud)

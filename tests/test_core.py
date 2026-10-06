@@ -240,8 +240,7 @@ def test_custom_theme_round_trips(tmp_path):
 def test_custom_theme_filters_invalid_entries(tmp_path):
     target = tmp_path / "settings.json"
     target.write_text(
-        '{"custom_theme": {"text": "#FFABCDEF", "bogus": "#112233",'
-        ' "border": "not-a-color", "track": 7}}',
+        '{"custom_theme": {"text": "#FFABCDEF", "bogus": "#112233", "border": "not-a-color", "track": 7}}',
         encoding="utf-8",
     )
     assert load_settings(target)["custom_theme"] == {"text": "#ffabcdef"}
@@ -282,9 +281,7 @@ def test_update_is_newer_matrix():
 def test_update_urls_derived_from_pyproject():
     from src.core import update as update_module
 
-    assert (
-        update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
-    )
+    assert update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
     assert update_module.releases_page_url() == "https://github.com/ZFordDev/Glint/releases/latest"
 
 
@@ -295,9 +292,7 @@ def test_repo_url_falls_back_to_installed_metadata(monkeypatch, tmp_path):
 
     monkeypatch.setattr(update_module, "PYPROJECT", tmp_path / "missing.toml")
     assert update_module.repo_url() == "https://github.com/ZFordDev/Glint"
-    assert (
-        update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
-    )
+    assert update_module.latest_release_url() == "https://api.github.com/repos/ZFordDev/Glint/releases/latest"
 
 
 def test_repo_url_requires_repository_entry(monkeypatch, tmp_path):

@@ -133,7 +133,9 @@ class GlassHUD(QWidget):
         snapshot = self.editor.snapshot
         if snapshot is None:
             return
-        self.widgets = create_widgets({"width": snapshot["width"], "height": snapshot["height"], "widgets": snapshot["widgets"]})
+        self.widgets = create_widgets(
+            {"width": snapshot["width"], "height": snapshot["height"], "widgets": snapshot["widgets"]}
+        )
         for widget in self.widgets:
             widget.set_theme(self.theme)
         self.resize(snapshot["width"], snapshot["height"])
@@ -229,7 +231,9 @@ class GlassHUD(QWidget):
         label = glint_version()
         painter.setFont(QFont(self.theme.get("font", "Sans Serif"), 7))
         painter.setPen(color(self.theme, "footer", "#66F0F0F0"))
-        painter.drawText(int((self.width() - painter.fontMetrics().horizontalAdvance(label)) / 2), self.height() - 5, label)
+        painter.drawText(
+            int((self.width() - painter.fontMetrics().horizontalAdvance(label)) / 2), self.height() - 5, label
+        )
         if self.editor.active:
             self._paint_editor_overlay(painter)
 
@@ -248,9 +252,7 @@ class GlassHUD(QWidget):
                 x0 = grip.left() + 3 + step * 3
                 painter.drawLine(int(x0), int(grip.top() + 3), int(x0), int(grip.bottom() - 4))
         # Window-corner resize grip, painted in the same 24px zone hit() uses.
-        corner = QRectF(
-            self.width() - WINDOW_GRAB, self.height() - WINDOW_GRAB, WINDOW_GRAB - EDGE, WINDOW_GRAB - EDGE
-        )
+        corner = QRectF(self.width() - WINDOW_GRAB, self.height() - WINDOW_GRAB, WINDOW_GRAB - EDGE, WINDOW_GRAB - EDGE)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(color(self.theme, "warning", "#FFC850"))
         painter.drawRoundedRect(corner, 6, 6)
