@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.0.4 (2026-10-20)
+## v1.0.4 (2026-10-06)
 
 ### Info
 > Glint dosnt need updates, if it works for you in its current form i wouldn't force a update just to be on the latest build, version `1.0.3` should work for most systems so updates after that will mostly be cosmetic and customisable options. 
