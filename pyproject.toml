@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=69.0", "wheel"]
+requires = ["setuptools>=84.2.1", "wheel>=0.48.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "glint-monitor"
-version = "1.0.4"
+version = "1.0.5"
 description = "A Modern Painter-Rendered Desktop System Monitor"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,10 +13,10 @@ authors = [
 ]
 
 dependencies = [
-    "psutil>=5.9",
-    "PyQt6>=6.6",
+    "psutil>=7.2.2",
+    "PyQt6>=6.12.0",
     "wmi>=1.5.1; platform_system == 'Windows'",
-    "pywin32>=306; platform_system == 'Windows'"
+    "pywin32>=312; platform_system == 'Windows'"
 ]
 
 # Optional but recommended
@@ -37,8 +37,8 @@ include = ["src*"]
 src = ["themes.json", "assets/*.svg"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6", "tomli>=2; python_version < '3.11'"]
-release = ["pyinstaller>=6.10", "tomli>=2; python_version < '3.11'"]
+dev = ["pytest>=9.2.0", "ruff>=0.17.3", "tomli>=2.5.0; python_version < '3.11'"]
+release = ["pyinstaller>=6.22.3", "tomli>=2.5.0; python_version < '3.11'"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

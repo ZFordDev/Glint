@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.5 (2026-10-30)
+
+### Changed
+
+- Updated runtime dependency minimums to psutil 7.2.2, PyQt6 6.12.0 and pywin32 312; WMI remains at 1.5.1.
+- Updated development and release tooling minimums to pytest 9.2.0, Ruff 0.17.3, PyInstaller 6.22.3, setuptools 84.2.1, wheel 0.48.0 and tomli 2.5.0.
+
 ## v1.0.4 (2026-10-06)
 
 ### Info
