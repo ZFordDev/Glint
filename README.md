@@ -12,6 +12,7 @@
 [![Checks](https://github.com/ZFordDev/Glint/actions/workflows/python-app.yml/badge.svg)](https://github.com/ZFordDev/Glint/actions/workflows/python-app.yml)
 ![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-6b8afd)
 [![License](https://img.shields.io/github/license/ZFordDev/Glint)](LICENSE)
+[![GitHub downloads](https://img.shields.io/github/downloads/ZFordDev/Glint/total?style=flat-square)](https://github.com/ZFordDev/Glint/releases)
 
 </div>
 
