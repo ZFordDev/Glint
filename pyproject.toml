@@ -37,7 +37,7 @@ include = ["src*"]
 src = ["themes.json", "assets/*.svg"]
 
 [project.optional-dependencies]
-dev = ["pytest>=9.2.0", "ruff>=0.17.3", "tomli>=2.5.0; python_version < '3.11'"]
+dev = ["pytest>=9.2.0", "ruff>=0.17.4", "tomli>=2.5.0; python_version < '3.11'"]
 release = ["pyinstaller>=6.22.3", "tomli>=2.5.0; python_version < '3.11'"]
 
 [tool.pytest.ini_options]
