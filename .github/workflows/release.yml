@@ -88,7 +88,7 @@ jobs:
       - name: Build native bundle
         run: python scripts/release.py build --asset-name "${{ matrix.asset }}" --archive "${{ matrix.archive }}"
       - name: Upload native bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.asset }}
           path: dist-release/*
